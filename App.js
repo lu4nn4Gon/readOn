@@ -1,4 +1,3 @@
-// App.js
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -12,11 +11,13 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
+     
       <StatusBar style="dark" translucent />
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
           headerShown: false, 
+          contentStyle: { backgroundColor: "transparent" },
         }}
       >
         <Stack.Screen name="Login" component={Login} />

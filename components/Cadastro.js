@@ -13,11 +13,10 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// opções de gênero
 const OPCOES_GENERO = ["Feminino", "Masculino", "Outro"];
 
-// paleta
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
@@ -125,7 +124,6 @@ export default class Cadastro extends React.Component {
         confirmarSenha: "",
       });
 
-      // volta para login (sem header)
       this.props.navigation?.navigate("Login");
     } catch {
       Alert.alert("Erro", "Não foi possível salvar.");
@@ -165,148 +163,154 @@ export default class Cadastro extends React.Component {
         end={{ x: 1, y: 1 }}
         style={estilos.pagina}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
-            {/* Botão Voltar */}
-            <Pressable
-              onPress={() => this.props.navigation?.goBack?.()}
-              style={estilos.botaoVoltar}
-            >
-              <Text style={estilos.textoVoltar}>Voltar</Text>
-            </Pressable>
+        <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1 }}
+          >
+            <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
 
-            {/* Cartão de boas-vindas */}
-            <View style={estilos.cartaoOla}>
-              <Text style={estilos.tituloOla}>Olá!</Text>
-              <Text style={estilos.subtituloOla}>Crie sua conta para começar a explorar.</Text>
-            </View>
-
-            {/* Cartão do formulário */}
-            <View style={estilos.cartaoFormulario}>
-              <Text style={estilos.tituloFormulario}>Cadastro</Text>
-
-              {/* Nome completo */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
-                </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Nome completo"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={nome}
-                  onChangeText={(v) => this.setState({ nome: v })}
-                  autoCapitalize="words"
-                />
+              {/* Cartão de boas-vindas */}
+              <View style={estilos.cartaoOla}>
+                <Text style={estilos.subtituloOla}>Crie sua conta para começar a explorar.</Text>
               </View>
 
-              {/* Nome de usuário */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="account-circle" size={20} color={CORES.azul500} />
+              {/* Cartão do formulário */}
+              <View style={estilos.cartaoFormulario}>
+
+                {/* Nome completo */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Nome completo"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={nome}
+                    onChangeText={(v) => this.setState({ nome: v })}
+                    autoCapitalize="words"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Nome de usuário (ex.: seu_nome)"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={usuario}
-                  onChangeText={(v) => this.setState({ usuario: v.replace(/\s+/g, "_") })}
-                  autoCapitalize="none"
-                  maxLength={20}
-                />
-              </View>
 
-              {/* Email */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="email" size={20} color={CORES.azul500} />
+                {/* Nome de usuário */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="account-circle" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Nome de usuário (ex.: seu_nome)"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={usuario}
+                    onChangeText={(v) => this.setState({ usuario: v.replace(/\s+/g, "_") })}
+                    autoCapitalize="none"
+                    maxLength={20}
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Email"
-                  placeholderTextColor={CORES.textoSuave}
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={(v) => this.setState({ email: v })}
-                  autoCapitalize="none"
-                />
-              </View>
 
-              {/* Data de nascimento */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="calendar" size={20} color={CORES.azul500} />
+                {/* Email */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="email" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Email"
+                    placeholderTextColor={CORES.textoSuave}
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={(v) => this.setState({ email: v })}
+                    autoCapitalize="none"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Data de nascimento (DD/MM/AAAA)"
-                  placeholderTextColor={CORES.textoSuave}
-                  keyboardType="number-pad"
-                  value={nascimento}
-                  onChangeText={(v) => this.setState({ nascimento: this.formatarDataInput(v) })}
-                  maxLength={10}
-                  autoCapitalize="none"
-                />
-              </View>
 
-              {/* Gênero */}
-              {this.GeneroSelect()}
-
-              {/* Celular */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="phone" size={20} color={CORES.azul500} />
+                {/* Data de nascimento */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="calendar" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Data de nascimento (DD/MM/AAAA)"
+                    placeholderTextColor={CORES.textoSuave}
+                    keyboardType="number-pad"
+                    value={nascimento}
+                    onChangeText={(v) => this.setState({ nascimento: this.formatarDataInput(v) })}
+                    maxLength={10}
+                    autoCapitalize="none"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Celular ((00) 00000-0000)"
-                  placeholderTextColor={CORES.textoSuave}
-                  keyboardType="number-pad"
-                  value={celular}
-                  onChangeText={(v) => this.setState({ celular: this.formatarCelular(v) })}
-                  maxLength={15}
-                  autoCapitalize="none"
-                />
-              </View>
 
-              {/* Senhas */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                {/* Gênero */}
+                {this.GeneroSelect()}
+
+                {/* Celular */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="phone" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Celular ((00) 00000-0000)"
+                    placeholderTextColor={CORES.textoSuave}
+                    keyboardType="number-pad"
+                    value={celular}
+                    onChangeText={(v) => this.setState({ celular: this.formatarCelular(v) })}
+                    maxLength={15}
+                    autoCapitalize="none"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Senha forte"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={senha}
-                  onChangeText={(v) => this.setState({ senha: v })}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              </View>
 
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="lock-check" size={20} color={CORES.azul500} />
+                {/* Senhas */}
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Senha forte"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={senha}
+                    onChangeText={(v) => this.setState({ senha: v })}
+                    secureTextEntry
+                    autoCapitalize="none"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Verificar senha"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={confirmarSenha}
-                  onChangeText={(v) => this.setState({ confirmarSenha: v })}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              </View>
 
-              {/* Botão Cadastrar */}
-              <Pressable onPress={this.gravar} style={estilos.botaoPrincipal}>
-                <Text style={estilos.textoBotao}>Cadastrar</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="lock-check" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Verificar senha"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={confirmarSenha}
+                    onChangeText={(v) => this.setState({ confirmarSenha: v })}
+                    secureTextEntry
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                {/* Botão Cadastrar */}
+                <Pressable onPress={this.gravar} style={estilos.botaoPrincipal}>
+                  <Text style={estilos.textoBotao}>Cadastrar</Text>
+                </Pressable>
+
+              
+                <Pressable
+                  onPress={() => this.props.navigation?.navigate("Login")}
+                  style={estilos.botaoSecundario}
+                >
+                  <Text style={estilos.textoSecundario}>
+                    Já possui cadastro? <Text style={estilos.textoLink}>Clique aqui</Text>
+                  </Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -324,23 +328,12 @@ const estilos = StyleSheet.create({
     alignItems: "center",
   },
 
-  botaoVoltar: {
-    alignSelf: "center",
-    marginBottom: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: CORES.azul300,
-    backgroundColor: CORES.branco,
-  },
-  textoVoltar: { color: CORES.textoEscuro, fontWeight: "700" },
-
   cartaoOla: {
     backgroundColor: CORES.azul500,
     borderRadius: 22,
     padding: 18,
     marginBottom: 16,
+    marginTop: 25,
     borderWidth: 1,
     borderColor: CORES.azul500,
     shadowColor: CORES.sombraForte,
@@ -403,8 +396,9 @@ const estilos = StyleSheet.create({
   },
   campoTexto: { flex: 1, color: CORES.textoEscuro, paddingVertical: 10, fontSize: 14 },
 
-  rotuloSecao: { color: CORES.textoEscuro, fontWeight: "700", marginBottom: 8 },
-  linhaChips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+  rotuloSecao: { color: CORES.textoEscuro, fontWeight: "700" },
+  linhaChips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", marginTop: 8 },
+
   chip: {
     borderWidth: 1,
     borderColor: CORES.azul300,
@@ -424,8 +418,12 @@ const estilos = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 1,
     alignSelf: "center",
   },
   textoBotao: { color: CORES.branco, fontWeight: "800", fontSize: 16, textAlign: "center" },
+
+  botaoSecundario: { paddingVertical: 12, alignItems: "center" },
+  textoSecundario: { color: CORES.textoSuave, fontSize: 14 },
+  textoLink: { color: CORES.azul500, textDecorationLine: "underline", fontWeight: "700" },
 });

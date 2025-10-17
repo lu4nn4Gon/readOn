@@ -9,12 +9,16 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// paleta (mesma do cadastro)
+
+const logo = require("../assets/logo.png");
+
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
@@ -30,12 +34,11 @@ const CORES = {
 
 export default class Login extends React.Component {
   state = {
-    identificador: "", // email OU nome de usuário
+    identificador: "",
     senha: "",
     carregando: false,
   };
 
-  // helper para saber se é e-mail
   _ehEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
 
   entrar = async () => {
@@ -50,7 +53,6 @@ export default class Login extends React.Component {
 
       this.setState({ carregando: true });
 
-      // Se não for email, tenta resolver via índice de username
       let emailKey = id;
       if (!this._ehEmail(id)) {
         const apontado = await AsyncStorage.getItem(`@username:${id}`);
@@ -78,8 +80,7 @@ export default class Login extends React.Component {
 
       this.setState({ carregando: false, senha: "" });
       Alert.alert("Bem-vindo(a)!", `Olá, ${user.nome}!`);
-      // navegue para a tela principal se tiver
-      // this.props.navigation?.replace("Home");
+
     } catch {
       this.setState({ carregando: false });
       Alert.alert("Erro", "Não foi possível realizar o login.");
@@ -96,72 +97,87 @@ export default class Login extends React.Component {
         end={{ x: 1, y: 1 }}
         style={estilos.pagina}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
-            {/* Cartão de boas-vindas */}
-            <View style={estilos.cartaoOla}>
-              <Text style={estilos.tituloOla}>Bem-vindo(a)!</Text>
-              <Text style={estilos.subtituloOla}>Entre para continuar.</Text>
-            </View>
-
-            {/* Cartão do formulário */}
-            <View style={estilos.cartaoFormulario}>
-              <Text style={estilos.tituloFormulario}>Login</Text>
-
-              {/* Identificador */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
+    
+        <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1 }}
+          >
+            <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
+              
+      
+              <View style={estilos.heroWrap}>
+                <View style={estilos.logoWrapAbs}>
+                  <Image
+                    source={logo}
+                    style={estilos.logoSobreposta}
+                    accessible
+                    accessibilityLabel="Logo do aplicativo"
+                  />
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Email ou nome de usuário"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={identificador}
-                  onChangeText={(v) => this.setState({ identificador: v })}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-              </View>
 
-              {/* Senha */}
-              <View style={estilos.campoCapsula}>
-                <View style={estilos.iconeCampo}>
-                  <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                
+                <View style={[estilos.cartaoOla, estilos.cartaoOlaComLogo]}>
+                  <Text style={estilos.tituloOla}>Bem-vindo!!!</Text>
+                  <Text style={estilos.subtituloOla}>Entre para continuar</Text>
                 </View>
-                <TextInput
-                  style={estilos.campoTexto}
-                  placeholder="Senha"
-                  placeholderTextColor={CORES.textoSuave}
-                  value={senha}
-                  onChangeText={(v) => this.setState({ senha: v })}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
               </View>
+  
+              <View style={estilos.cartaoFormulario}>
+  
 
-              {/* Botão Entrar */}
-              <Pressable
-                disabled={carregando}
-                onPress={this.entrar}
-                style={[estilos.botaoPrincipal, carregando && { opacity: 0.7 }]}
-              >
-                <Text style={estilos.textoBotao}>{carregando ? "Entrando..." : "Entrar"}</Text>
-              </Pressable>
 
-              {/* Botão ir ao Cadastro */}
-              <Pressable
-                onPress={() => this.props.navigation?.navigate("Cadastro")}
-                style={estilos.botaoSecundario}
-              >
-                <Text style={estilos.textoLink}>Criar conta</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Email ou nome de usuário"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={identificador}
+                    onChangeText={(v) => this.setState({ identificador: v })}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
+
+           
+                <View style={estilos.campoCapsula}>
+                  <View style={estilos.iconeCampo}>
+                    <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                  </View>
+                  <TextInput
+                    style={estilos.campoTexto}
+                    placeholder="Senha"
+                    placeholderTextColor={CORES.textoSuave}
+                    value={senha}
+                    onChangeText={(v) => this.setState({ senha: v })}
+                    secureTextEntry
+                    autoCapitalize="none"
+                  />
+                </View>
+
+     
+                <Pressable
+                  disabled={carregando}
+                  onPress={this.entrar}
+                  style={[estilos.botaoPrincipal, carregando && { opacity: 0.7 }]}
+                >
+                  <Text style={estilos.textoBotao}>{carregando ? "Entrando..." : "Entrar"}</Text>
+                </Pressable>
+
+      
+                <Pressable
+                  onPress={() => this.props.navigation?.navigate("Cadastro")}
+                  style={estilos.botaoSecundario}
+                >
+                  <Text style={estilos.textoLink}>Criar conta</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -170,7 +186,9 @@ export default class Login extends React.Component {
 const LARGURA_MAX = 480;
 
 const estilos = StyleSheet.create({
+
   pagina: { flex: 1 },
+
   conteudo: {
     padding: 18,
     paddingBottom: 28,
@@ -179,11 +197,34 @@ const estilos = StyleSheet.create({
     alignItems: "center",
   },
 
+  
+  heroWrap: {
+    width: "100%",
+    maxWidth: LARGURA_MAX,
+    alignSelf: "center",
+    position: "relative",
+    marginBottom: 16,
+  },
+  logoWrapAbs: {
+    position: "absolute",
+    top: -190,            
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 3,
+  },
+  logoSobreposta: {
+    width: 175,
+    height: 300,
+    resizeMode: "contain",
+  },
+
+
   cartaoOla: {
     backgroundColor: CORES.azul500,
     borderRadius: 22,
     padding: 18,
-    marginBottom: 16,
+    marginBottom: 0,
     borderWidth: 1,
     borderColor: CORES.azul500,
     shadowColor: CORES.sombraForte,
@@ -192,9 +233,12 @@ const estilos = StyleSheet.create({
     shadowOffset: { width: 0, height: 15 },
     elevation: 6,
     width: "100%",
-    maxWidth: LARGURA_MAX,
     alignSelf: "center",
     alignItems: "center",
+  },
+
+  cartaoOlaComLogo: {
+    paddingTop: 65,
   },
   tituloOla: { color: CORES.branco, fontSize: 20, fontWeight: "800", marginBottom: 6, textAlign: "center" },
   subtituloOla: { color: CORES.branco, opacity: 0.9, fontSize: 13, textAlign: "center" },
