@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 const KEY_CURRENT_BOOK = "@readon:current_book";
 const arteHome = require("../assets/home.png");
 
+
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
@@ -34,17 +35,15 @@ const CORES = {
 export default class Home extends React.Component {
   state = {
     carregando: true,
-    livro: null,         
-    listaDesejos: [],     
+    livro: null,          // { id, titulo, autor, capa, inicioEm }
+    listaDesejos: [],     // vazia por enquanto (placeholders)
   };
 
   componentDidMount() {
     this._unsub = this.props.navigation?.addListener?.("focus", this.carregar);
     this.carregar();
   }
-  componentWillUnmount() {
-    this._unsub?.();
-  }
+  componentWillUnmount() { this._unsub?.(); }
 
   carregar = async () => {
     try {
@@ -55,8 +54,20 @@ export default class Home extends React.Component {
     }
   };
 
-  onAddPress = () =>
-    Alert.alert("Adicionar livro", "Em breve esta ação estará disponível.");
+  onAddPress = () => Alert.alert("Adicionar livro", "Em breve esta ação estará disponível.");
+
+  irParaBiblioteca = (filtro) => {
+    const pode = !!this.props.navigation?.navigate;
+    if (pode) {
+      try {
+        this.props.navigation.navigate("Biblioteca", filtro ? { filtro } : undefined);
+      } catch {
+        Alert.alert("Biblioteca", "Tela de biblioteca ainda não foi implementada.");
+      }
+    } else {
+      Alert.alert("Biblioteca", "Tela de biblioteca ainda não foi implementada.");
+    }
+  };
 
   formatarData = (iso) => {
     if (!iso) return "";
@@ -68,6 +79,7 @@ export default class Home extends React.Component {
   };
   getDiaDoMes = () => String(new Date().getDate()).padStart(2, "0");
 
+  
   Cabecalho = () => {
     const nome = this.props.route?.params?.userNome || "usuário";
     return (
@@ -86,26 +98,24 @@ export default class Home extends React.Component {
             <Text style={estilos.seloDia}>Dia {this.getDiaDoMes()}</Text>
           </View>
 
-        
+    
           <View style={estilos.onda} />
-       
           <Image source={arteHome} style={estilos.imagemCabecalho} />
         </View>
       </View>
     );
   };
 
+  
   CartaoVazio = () => (
     <View style={[estilos.cartao, estilos.cartaoVazio]}>
-      <Text style={estilos.tituloCartao}>Adicionar um livro</Text>
-      <Text style={estilos.subtituloCartao}>
-        Tem algum livro que você está lendo?
-      </Text>
+      <Text style={estilos.tituloCartao}>Tem algum livro que você está lendo?</Text>
+      <Text style={estilos.subtituloCartao}>Adicione sua leitura atual</Text>
 
       <View style={estilos.fundoCruzes}>
-        <MaterialCommunityIcons name="plus" size={56} color="#ECF3F4" />
-        <MaterialCommunityIcons name="plus" size={40} color="#F0F6F7" />
-        <MaterialCommunityIcons name="plus" size={28} color="#F4F9F9" />
+        <MaterialCommunityIcons name="plus" size={12} color="#0ae0b2ff" />
+        <MaterialCommunityIcons name="plus" size={40} color="#0ae0b2ff" />
+        <MaterialCommunityIcons name="plus" size={28} color="#0ae0b2ff" />
       </View>
 
       <Pressable onPress={this.onAddPress} style={estilos.botaoPrimario}>
@@ -129,62 +139,36 @@ export default class Home extends React.Component {
               <Image source={{ uri: livro.capa }} style={estilos.capaImagem} />
             ) : (
               <View style={estilos.capaVazia}>
-                <MaterialCommunityIcons
-                  name="book-open-page-variant"
-                  size={42}
-                  color={CORES.textoSuave}
-                />
+                <MaterialCommunityIcons name="book-open-page-variant" size={42} color={CORES.textoSuave} />
               </View>
             )}
           </View>
 
           <View style={{ flex: 1, paddingLeft: 14 }}>
             {!!livro?.inicioEm && (
-              <Text style={estilos.metaLivro}>
-                A partir de {this.formatarData(livro.inicioEm)}
-              </Text>
+              <Text style={estilos.metaLivro}>A partir de {this.formatarData(livro.inicioEm)}</Text>
             )}
-            {!!livro?.autor && (
-              <Text style={estilos.autorLivro}>{livro.autor}</Text>
-            )}
+            {!!livro?.autor && <Text style={estilos.autorLivro}>{livro.autor}</Text>}
 
             <View style={estilos.seloNota}>
-              <MaterialCommunityIcons
-                name="note-outline"
-                size={16}
-                color={CORES.textoSuave}
-              />
+              <MaterialCommunityIcons name="note-outline" size={16} color={CORES.textoSuave} />
               <Text style={estilos.textoSeloNota}>1 nota</Text>
             </View>
           </View>
         </View>
 
         <View style={estilos.grupoFlutuante}>
-          <Pressable style={estilos.botaoFlutuante}>
-            <MaterialCommunityIcons
-              name="timer-outline"
-              size={20}
-              color={CORES.branco}
-            />
-          </Pressable>
-          <Pressable style={estilos.botaoFlutuante}>
-            <MaterialCommunityIcons
-              name="note-text-outline"
-              size={20}
-              color={CORES.branco}
-            />
-          </Pressable>
-          <Pressable style={estilos.botaoFlutuante}>
-            <MaterialCommunityIcons name="plus" size={20} color={CORES.branco} />
-          </Pressable>
+          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="timer-outline" size={20} color={CORES.branco} /></Pressable>
+          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="note-text-outline" size={20} color={CORES.branco} /></Pressable>
+          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="plus" size={20} color={CORES.branco} /></Pressable>
         </View>
       </View>
     );
   };
 
-
+ 
   CartaoListaDesejos = () => {
-    const { listaDesejos } = this.state; 
+    const { listaDesejos } = this.state;
     const vazia = !listaDesejos || listaDesejos.length === 0;
 
     return (
@@ -193,16 +177,10 @@ export default class Home extends React.Component {
           <Text style={estilos.listaDesejosTitulo}>Lista de desejos</Text>
 
           <Pressable
-            onPress={() =>
-              Alert.alert("Lista de desejos", "Adicionar item — em breve.")
-            }
+            onPress={() => Alert.alert("Lista de desejos", "Adicionar item — em breve.")}
             style={estilos.botaoFantasma}
           >
-            <MaterialCommunityIcons
-              name="heart-plus"
-              size={18}
-              color={CORES.azul500}
-            />
+            <MaterialCommunityIcons name="heart-plus" size={18} color={CORES.azul500} />
             <Text style={estilos.textoBotaoFantasma}>Adicionar</Text>
           </Pressable>
         </View>
@@ -213,91 +191,48 @@ export default class Home extends React.Component {
               Sua lista de desejos está vazia no momento.
             </Text>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={estilos.listaDesejosLinha}
-            >
-            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.listaDesejosLinha}>
+              
               <View style={[estilos.itemDesejo, estilos.itemDesejoPlaceholder]}>
                 <View style={estilos.capaDesejoPlaceholder}>
-                  <MaterialCommunityIcons
-                    name="book-outline"
-                    size={30}
-                    color={CORES.azul300}
-                  />
+                  <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
                 </View>
-                <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>
-                  Nome do livro
-                </Text>
-                <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>
-                  Autor
-                </Text>
+                <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>Nome do livro</Text>
+                <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>Autor</Text>
               </View>
 
-             
+           
               <View style={[estilos.itemDesejo, estilos.itemDesejoPlaceholder]}>
                 <View style={estilos.capaDesejoPlaceholder}>
-                  <MaterialCommunityIcons
-                    name="book-outline"
-                    size={30}
-                    color={CORES.azul300}
-                  />
+                  <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
                 </View>
-                <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>
-                  Nome do livro
-                </Text>
-                <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>
-                  Autor
-                </Text>
+                <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>Nome do livro</Text>
+                <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>Autor</Text>
               </View>
 
             
               <Pressable
-                onPress={() =>
-                  Alert.alert(
-                    "Lista de desejos",
-                    "Em breve você poderá adicionar um livro."
-                  )
-                }
+                onPress={() => Alert.alert("Lista de desejos", "Em breve você poderá adicionar um livro.")}
                 style={[estilos.itemDesejo, estilos.itemDesejoAdd]}
               >
-                <MaterialCommunityIcons
-                  name="plus"
-                  size={26}
-                  color={CORES.textoSuave}
-                />
+                <MaterialCommunityIcons name="plus" size={26} color={CORES.textoSuave} />
                 <Text style={estilos.itemDesejoAddTxt}>Adicionar</Text>
               </Pressable>
             </ScrollView>
           </>
         ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={estilos.listaDesejosLinha}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.listaDesejosLinha}>
             {listaDesejos.map((it) => (
               <View key={it.id} style={estilos.itemDesejo}>
                 {it.capa ? (
                   <Image source={{ uri: it.capa }} style={estilos.capaDesejo} />
                 ) : (
                   <View style={estilos.capaDesejoPlaceholder}>
-                    <MaterialCommunityIcons
-                      name="book-outline"
-                      size={30}
-                      color={CORES.azul300}
-                    />
+                    <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
                   </View>
                 )}
-                <Text numberOfLines={1} style={estilos.tituloDesejo}>
-                  {it.titulo || "Sem título"}
-                </Text>
-                {!!it.autor && (
-                  <Text numberOfLines={1} style={estilos.autorDesejo}>
-                    {it.autor}
-                  </Text>
-                )}
+                <Text numberOfLines={1} style={estilos.tituloDesejo}>{it.titulo || "Sem título"}</Text>
+                {!!it.autor && <Text numberOfLines={1} style={estilos.autorDesejo}>{it.autor}</Text>}
               </View>
             ))}
           </ScrollView>
@@ -306,6 +241,34 @@ export default class Home extends React.Component {
     );
   };
 
+  
+  CartaoBiblioteca = () => {
+    return (
+      <View style={[estilos.cartao, estilos.cartaoBiblioteca]}>
+        <Text style={estilos.bibliotecaTitulo}>Sua biblioteca</Text>
+
+        <View style={estilos.bibliotecaBotoesLinha}>
+          <Pressable
+            onPress={() => this.irParaBiblioteca("favoritos")}
+            style={[estilos.chipBiblioteca, estilos.chipFavoritos]}
+          >
+            <MaterialCommunityIcons name="heart" size={16} />
+            <Text style={estilos.textoChipBiblioteca}>Favoritos</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => this.irParaBiblioteca("lidos")}
+            style={[estilos.chipBiblioteca, estilos.chipLidos]}
+          >
+            <MaterialCommunityIcons name="check-circle" size={16} />
+            <Text style={estilos.textoChipBiblioteca}>Lidos</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
+  
   PilulaInfo = () => (
     <View style={estilos.pilulaInfo}>
       <Text style={estilos.textoPilulaInfo}>Você está lendo um livro.</Text>
@@ -320,34 +283,36 @@ export default class Home extends React.Component {
 
     return (
       <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
+     
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ flex: 1 }}
-          >
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
               <this.Cabecalho />
 
               {carregando ? (
-                <Text style={{ color: CORES.textoSuave, marginTop: 16 }}>Carregando...</Text>
+                <Text style={{ color: CORES.textoSuave, marginTop: 14 }}>Carregando...</Text>
               ) : livro ? (
                 <>
                   <this.CartaoLivro />
-                  <View style={{ height: 12 }} />
+                  <View style={{ height: 10 }} />
                   <this.PilulaInfo />
                 </>
               ) : (
                 <>
                   <this.CartaoVazio />
-                  <View style={{ height: 12 }} />
+                  <View style={{ height: 10 }} />
                   <this.PilulaInfo />
                 </>
               )}
 
-              <View style={{ height: 18 }} />
+              
+              <View style={{ height: 8 }} />
               <this.CartaoListaDesejos />
 
-              <View style={{ height: 60 }} />
+              <View style={{ height: 10 }} />
+              <this.CartaoBiblioteca />
+
+              <View style={{ height: 28 }} />
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -366,7 +331,7 @@ const estilos = StyleSheet.create({
     alignItems: "center",
   },
 
- 
+
   cabecalhoWrap: { width: "100%", alignItems: "center", marginTop: 0 },
   cabecalho: {
     width: "110%",
@@ -380,21 +345,9 @@ const estilos = StyleSheet.create({
     overflow: "hidden",
   },
   linhaCabecalho: { flexDirection: "row", alignItems: "flex-start" },
-  titulo: {
-    color: "#E8F4FA",
-    fontWeight: "800",
-    fontSize: 32,
-    marginTop: 12,
-    marginBottom: 6,
-  },
+  titulo: { color: "#E8F4FA", fontWeight: "800", fontSize: 32, marginTop: 12, marginBottom: 6 },
   subtitulo: { color: "#D3E7F3", fontSize: 14 },
-
-  faixa: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+  faixa: { marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   seloDia: {
     backgroundColor: CORES.cinza,
     color: "#fefefeff",
@@ -403,7 +356,6 @@ const estilos = StyleSheet.create({
     borderRadius: 999,
     fontWeight: "900",
   },
-
   onda: {
     position: "absolute",
     width: 260,
@@ -415,7 +367,6 @@ const estilos = StyleSheet.create({
     transform: [{ rotate: "12deg" }],
     zIndex: 1,
   },
-
   imagemCabecalho: {
     position: "absolute",
     right: -15,
@@ -426,10 +377,10 @@ const estilos = StyleSheet.create({
     zIndex: 2,
   },
 
-  // Cartões (base)
+  
   cartao: {
     width: "100%",
-    marginTop: 30,
+    marginTop: 22, 
     maxWidth: LARGURA_MAX,
     backgroundColor: CORES.branco,
     borderWidth: 1,
@@ -444,7 +395,7 @@ const estilos = StyleSheet.create({
     elevation: 4,
   },
 
-  // Cartão vazio (sem livro atual)
+  
   cartaoVazio: { alignItems: "flex-start", overflow: "hidden" },
   tituloCartao: { color: CORES.texto, fontSize: 22, fontWeight: "800", marginBottom: 6 },
   subtituloCartao: { color: CORES.textoSuave, marginBottom: 18 },
@@ -465,17 +416,9 @@ const estilos = StyleSheet.create({
   cartaoLivro: {},
   tituloLivro: { color: CORES.texto, fontSize: 20, fontWeight: "800", marginBottom: 10 },
   linhaLivro: { flexDirection: "row", alignItems: "center" },
-
-  capaContainer: {
-    width: 110,
-    height: 160,
-    borderRadius: 14,
-    overflow: "hidden",
-    backgroundColor: "#F1F2F4",
-  },
+  capaContainer: { width: 110, height: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#F1F2F4" },
   capaImagem: { width: "100%", height: "100%", resizeMode: "cover" },
   capaVazia: { flex: 1, alignItems: "center", justifyContent: "center" },
-
   metaLivro: { color: CORES.textoSuave },
   autorLivro: { color: CORES.textoSuave, marginTop: 4 },
   seloNota: {
@@ -490,20 +433,14 @@ const estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
   textoSeloNota: { color: CORES.textoSuave },
-
   grupoFlutuante: {
     position: "absolute",
-    right: 16,
-    bottom: 16,
-    flexDirection: "row",
-    gap: 10,
+    right: 16, bottom: 16,
+    flexDirection: "row", gap: 10,
   },
   botaoFlutuante: {
-    width: 48,
-    height: 48,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 48, height: 48, borderRadius: 18,
+    alignItems: "center", justifyContent: "center",
     backgroundColor: CORES.azul500,
     elevation: 3,
     shadowColor: CORES.sombra,
@@ -534,25 +471,19 @@ const estilos = StyleSheet.create({
   },
   textoPilulaInfo: { color: CORES.texto, fontSize: 16 },
   avatarInfo: {
-    width: 36,
-    height: 36,
-    borderRadius: 999,
+    width: 36, height: 36, borderRadius: 999,
     backgroundColor: CORES.azul500,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
 
-  
-  cartaoListaDesejos: {},
-  listaDesejosTopo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
+ 
+  cartaoListaDesejos: {
+    marginTop: 14,    
+    marginBottom: 10, 
   },
+  listaDesejosTopo: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   listaDesejosTitulo: { color: CORES.texto, fontSize: 20, fontWeight: "800" },
-  listaDesejosMensagem: { color: CORES.textoSuave, marginBottom: 8 },
-
+  listaDesejosMensagem: { color: CORES.textoSuave, marginBottom: 6 },
   botaoFantasma: {
     flexDirection: "row",
     alignItems: "center",
@@ -563,9 +494,7 @@ const estilos = StyleSheet.create({
     borderRadius: 12,
   },
   textoBotaoFantasma: { color: CORES.azul500, fontWeight: "800" },
-
-  listaDesejosLinha: { gap: 14, paddingRight: 4 },
-
+  listaDesejosLinha: { gap: 12, paddingRight: 4 },
   itemDesejo: {
     width: 130,
     borderWidth: 1,
@@ -579,40 +508,50 @@ const estilos = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
-
- 
-  itemDesejoPlaceholder: {
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-  },
+  itemDesejoPlaceholder: { alignItems: "flex-start", justifyContent: "flex-start" },
   capaDesejoPlaceholder: {
-    width: "100%",
-    height: 150,
-    borderRadius: 10,
-    marginBottom: 8,
-    backgroundColor: "#F1F2F4",
-    alignItems: "center",
-    justifyContent: "center",
+    width: "100%", height: 150, borderRadius: 10, marginBottom: 8,
+    backgroundColor: "#F1F2F4", alignItems: "center", justifyContent: "center",
   },
   tituloDesejoPlaceholder: { color: CORES.azul300, fontWeight: "700" },
   autorDesejoPlaceholder: { color: CORES.azul300, fontSize: 12, marginTop: 2 },
-
-
-  capaDesejo: {
-    width: "100%",
-    height: 150,
-    borderRadius: 10,
-    marginBottom: 8,
-    backgroundColor: "#F1F2F4",
-  },
+  capaDesejo: { width: "100%", height: 150, borderRadius: 10, marginBottom: 8, backgroundColor: "#F1F2F4" },
   tituloDesejo: { color: CORES.texto, fontWeight: "800" },
   autorDesejo: { color: CORES.textoSuave, fontSize: 12, marginTop: 2 },
-
- 
-  itemDesejoAdd: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+  itemDesejoAdd: { alignItems: "center", justifyContent: "center", gap: 8 },
   itemDesejoAddTxt: { color: CORES.textoSuave, fontWeight: "700" },
+
+  
+  cartaoBiblioteca: {
+    paddingVertical: 14,
+    marginTop: 12, 
+  },
+  bibliotecaTitulo: {
+    color: CORES.texto,
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 10, 
+  },
+  bibliotecaBotoesLinha: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  chipBiblioteca: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "rgba(3,139,137,0.08)",
+    borderWidth: 1,
+    borderColor: CORES.borda,
+  },
+  textoChipBiblioteca: {
+    color: CORES.azul500,
+    fontWeight: "800",
+  },
+  chipFavoritos: {},
+  chipLidos: {},
 });
