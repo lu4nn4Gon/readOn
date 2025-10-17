@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-// mesmas cores da página de cadastro
+// paleta (mesma do cadastro)
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
@@ -35,10 +35,7 @@ export default class Login extends React.Component {
     carregando: false,
   };
 
-  componentDidMount() {
-    this.props.navigation?.setOptions({ title: "Login" });
-  }
-
+  // helper para saber se é e-mail
   _ehEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
 
   entrar = async () => {
@@ -53,7 +50,7 @@ export default class Login extends React.Component {
 
       this.setState({ carregando: true });
 
-      // 1) Resolver para o e-mail: se for usuário, pega no índice @username:
+      // Se não for email, tenta resolver via índice de username
       let emailKey = id;
       if (!this._ehEmail(id)) {
         const apontado = await AsyncStorage.getItem(`@username:${id}`);
@@ -62,10 +59,9 @@ export default class Login extends React.Component {
           Alert.alert("Erro", "Usuário não encontrado.");
           return;
         }
-        emailKey = apontado; // valor salvo no índice é o e-mail
+        emailKey = apontado;
       }
 
-      // 2) Buscar o registro do usuário (salvo com a chave = e-mail)
       const raw = await AsyncStorage.getItem(emailKey);
       if (!raw) {
         this.setState({ carregando: false });
@@ -80,13 +76,11 @@ export default class Login extends React.Component {
         return;
       }
 
-      // sucesso
       this.setState({ carregando: false, senha: "" });
       Alert.alert("Bem-vindo(a)!", `Olá, ${user.nome}!`);
-      // acione um callback ou navegue:
-      this.props.onLoginSucesso?.(user);
-      // this.props.navigation?.replace("Home"); // se quiser navegar
-    } catch (e) {
+      // navegue para a tela principal se tiver
+      // this.props.navigation?.replace("Home");
+    } catch {
       this.setState({ carregando: false });
       Alert.alert("Erro", "Não foi possível realizar o login.");
     }
@@ -117,7 +111,7 @@ export default class Login extends React.Component {
             <View style={estilos.cartaoFormulario}>
               <Text style={estilos.tituloFormulario}>Login</Text>
 
-              {/* Identificador (email ou usuário) */}
+              {/* Identificador */}
               <View style={estilos.campoCapsula}>
                 <View style={estilos.iconeCampo}>
                   <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
@@ -149,7 +143,7 @@ export default class Login extends React.Component {
                 />
               </View>
 
-              {/* Ações */}
+              {/* Botão Entrar */}
               <Pressable
                 disabled={carregando}
                 onPress={this.entrar}
@@ -158,12 +152,12 @@ export default class Login extends React.Component {
                 <Text style={estilos.textoBotao}>{carregando ? "Entrando..." : "Entrar"}</Text>
               </Pressable>
 
-              {/* Link para cadastro (opcional) */}
+              {/* Botão ir ao Cadastro */}
               <Pressable
-                style={estilos.linkSecundario}
-                onPress={() => this.props.navigation?.navigate?.("Cadastro")}
+                onPress={() => this.props.navigation?.navigate("Cadastro")}
+                style={estilos.botaoSecundario}
               >
-                <Text style={estilos.textoLink}>Não tem conta? Cadastre-se</Text>
+                <Text style={estilos.textoLink}>Criar conta</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -262,6 +256,6 @@ const estilos = StyleSheet.create({
   },
   textoBotao: { color: CORES.branco, fontWeight: "800", fontSize: 16, textAlign: "center" },
 
-  linkSecundario: { paddingVertical: 12, alignItems: "center" },
+  botaoSecundario: { paddingVertical: 12, alignItems: "center" },
   textoLink: { color: CORES.textoSuave, fontSize: 14, textDecorationLine: "underline" },
 });

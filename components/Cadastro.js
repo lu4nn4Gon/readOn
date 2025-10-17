@@ -14,10 +14,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-// opções de gênero para selecionar
-const GENDER_OPTIONS = ["Feminino", "Masculino", "Outro"];
+// opções de gênero
+const OPCOES_GENERO = ["Feminino", "Masculino", "Outro"];
 
-// cores
+// paleta
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
@@ -29,7 +29,6 @@ const CORES = {
   branco: "#ffffffff",
   bordaCartao: "#D6D5D3",
   sombraForte: "#040000FF",
-  sombraSuave: "#000000a7",
 };
 
 export default class Cadastro extends React.Component {
@@ -44,11 +43,7 @@ export default class Cadastro extends React.Component {
     confirmarSenha: "",
   };
 
-  componentDidMount() {
-    this.props.navigation?.setOptions({ title: "Cadastro" });
-  }
-
-  // utilidades de validação/mascara
+  // utilidades
   somenteDigitos = (v) => (v || "").replace(/\D+/g, "");
   senhaForte = (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v || "");
   emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
@@ -129,7 +124,9 @@ export default class Cadastro extends React.Component {
         senha: "",
         confirmarSenha: "",
       });
-      this.props.onAfterSave?.();
+
+      // volta para login (sem header)
+      this.props.navigation?.navigate("Login");
     } catch {
       Alert.alert("Erro", "Não foi possível salvar.");
     }
@@ -141,7 +138,7 @@ export default class Cadastro extends React.Component {
       <View style={{ margin: 9, width: "100%" }}>
         <Text style={estilos.rotuloSecao}>Gênero</Text>
         <View style={estilos.linhaChips}>
-          {GENDER_OPTIONS.map((opt) => {
+          {OPCOES_GENERO.map((opt) => {
             const ativo = genero === opt;
             return (
               <Pressable
@@ -149,9 +146,7 @@ export default class Cadastro extends React.Component {
                 onPress={() => this.setState({ genero: opt })}
                 style={[estilos.chip, ativo && estilos.chipAtivo]}
               >
-                <Text style={[estilos.textoChip, ativo && estilos.textoChipAtivo]}>
-                  {opt}
-                </Text>
+                <Text style={[estilos.textoChip, ativo && estilos.textoChipAtivo]}>{opt}</Text>
               </Pressable>
             );
           })}
@@ -172,13 +167,21 @@ export default class Cadastro extends React.Component {
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
-            {/* cartão de boas-vindas */}
+            {/* Botão Voltar */}
+            <Pressable
+              onPress={() => this.props.navigation?.goBack?.()}
+              style={estilos.botaoVoltar}
+            >
+              <Text style={estilos.textoVoltar}>Voltar</Text>
+            </Pressable>
+
+            {/* Cartão de boas-vindas */}
             <View style={estilos.cartaoOla}>
               <Text style={estilos.tituloOla}>Olá!</Text>
               <Text style={estilos.subtituloOla}>Crie sua conta para começar a explorar.</Text>
             </View>
 
-            {/* cartão do formulário */}
+            {/* Cartão do formulário */}
             <View style={estilos.cartaoFormulario}>
               <Text style={estilos.tituloFormulario}>Cadastro</Text>
 
@@ -246,7 +249,7 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
-              {/* Seletor de gênero */}
+              {/* Gênero */}
               {this.GeneroSelect()}
 
               {/* Celular */}
@@ -266,7 +269,7 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
-              {/* Senha */}
+              {/* Senhas */}
               <View style={estilos.campoCapsula}>
                 <View style={estilos.iconeCampo}>
                   <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
@@ -282,7 +285,6 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
-              {/* Confirmar senha */}
               <View style={estilos.campoCapsula}>
                 <View style={estilos.iconeCampo}>
                   <MaterialCommunityIcons name="lock-check" size={20} color={CORES.azul500} />
@@ -298,7 +300,7 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
-              {/* Botão cadastrar */}
+              {/* Botão Cadastrar */}
               <Pressable onPress={this.gravar} style={estilos.botaoPrincipal}>
                 <Text style={estilos.textoBotao}>Cadastrar</Text>
               </Pressable>
@@ -314,7 +316,6 @@ const LARGURA_MAX = 480;
 
 const estilos = StyleSheet.create({
   pagina: { flex: 1 },
-
   conteudo: {
     padding: 18,
     paddingBottom: 28,
@@ -322,6 +323,18 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
+  botaoVoltar: {
+    alignSelf: "center",
+    marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: CORES.azul300,
+    backgroundColor: CORES.branco,
+  },
+  textoVoltar: { color: CORES.textoEscuro, fontWeight: "700" },
 
   cartaoOla: {
     backgroundColor: CORES.azul500,
@@ -391,9 +404,7 @@ const estilos = StyleSheet.create({
   campoTexto: { flex: 1, color: CORES.textoEscuro, paddingVertical: 10, fontSize: 14 },
 
   rotuloSecao: { color: CORES.textoEscuro, fontWeight: "700", marginBottom: 8 },
-
   linhaChips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
-
   chip: {
     borderWidth: 1,
     borderColor: CORES.azul300,
@@ -405,7 +416,6 @@ const estilos = StyleSheet.create({
     backgroundColor: CORES.branco,
   },
   chipAtivo: { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
-
   textoChip: { color: CORES.textoSuave, fontWeight: "700" },
   textoChipAtivo: { color: CORES.branco, fontWeight: "800" },
 
