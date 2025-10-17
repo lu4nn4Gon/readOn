@@ -34,6 +34,7 @@ const COLORS = {
 export default class Cadastro extends React.Component {
   state = {
     nome: "",
+    usuario: "",      // <- novo campo
     email: "",
     nascimento: "",
     genero: "",
@@ -49,6 +50,7 @@ export default class Cadastro extends React.Component {
   somenteDigitos = (v) => (v || "").replace(/\D+/g, "");
   senhaForte = (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v || "");
   emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
+  usernameValido = (v) => /^[a-z0-9_]{3,20}$/.test((v || "").toLowerCase()); // 3-20, letras/números/_
 
   validarDataBR = (v) => {
     const m = /^([0-2]\d|3[01])\/(0\d|1[0-2])\/\d{4}$/.exec(v || "");
@@ -64,7 +66,7 @@ export default class Cadastro extends React.Component {
     if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
     return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4, 8)}`;
   };
-  
+
   formatarCelular = (v) => {
     const d = this.somenteDigitos(v).slice(0, 11);
     if (d.length === 0) return "";
@@ -76,25 +78,36 @@ export default class Cadastro extends React.Component {
 
   gravar = async () => {
     try {
-      const { nome, email, nascimento, genero, celular, senha, confirmarSenha } = this.state;
+      const { nome, usuario, email, nascimento, genero, celular, senha, confirmarSenha } = this.state;
       const celN = this.somenteDigitos(celular);
       const emailKey = (email || "").trim().toLowerCase();
+      const username = (usuario || "").trim().toLowerCase();
 
-      if (!nome.trim() || !emailKey || !nascimento.trim() || !genero.trim() || !celN || !senha || !confirmarSenha) {
+      if (!nome.trim() || !username || !emailKey || !nascimento.trim() || !genero.trim() || !celN || !senha || !confirmarSenha) {
         Alert.alert("Atenção", "Preencha todos os campos.");
         return;
       }
+      if (!this.usernameValido(username))
+        return Alert.alert("Nome de usuário inválido",
+          "Use 3–20 caracteres, apenas letras minúsculas, números ou _ (underline).");
+
       if (!this.emailValido(emailKey)) return Alert.alert("Email inválido", "Informe um email válido.");
       if (!this.validarDataBR(nascimento)) return Alert.alert("Data inválida", "Use DD/MM/AAAA.");
       if (celN.length < 10 || celN.length > 11) return Alert.alert("Celular inválido", "Use DDD + número.");
       if (!this.senhaForte(senha)) return Alert.alert("Senha fraca", "Mín. 8, com 1 maiúscula, 1 minúscula e 1 número.");
       if (senha !== confirmarSenha) return Alert.alert("Senhas diferentes", "Confirmação não confere.");
 
-      const existe = await AsyncStorage.getItem(emailKey);
-      if (existe) return Alert.alert("Email já cadastrado", "Tente outro.");
+      // unicidade
+      const existeEmail = await AsyncStorage.getItem(emailKey);
+      if (existeEmail) return Alert.alert("Email já cadastrado", "Tente outro.");
+
+      const userIndexKey = `@username:${username}`;
+      const existeUser = await AsyncStorage.getItem(userIndexKey);
+      if (existeUser) return Alert.alert("Nome de usuário em uso", "Escolha outro @nome.");
 
       const registro = {
         nome: nome.trim(),
+        usuario: username, // <- salvo como aparece na plataforma (minúsculo)
         email: emailKey,
         nascimento: nascimento.trim(),
         genero: genero.trim(),
@@ -103,10 +116,14 @@ export default class Cadastro extends React.Component {
         criadoEm: new Date().toISOString(),
       };
 
+      // salva registro e índice de username
       await AsyncStorage.setItem(emailKey, JSON.stringify(registro));
+      await AsyncStorage.setItem(userIndexKey, emailKey);
+
       Alert.alert("Sucesso", "Cadastro salvo!");
       this.setState({
         nome: "",
+        usuario: "",
         email: "",
         nascimento: "",
         genero: "",
@@ -142,8 +159,8 @@ export default class Cadastro extends React.Component {
   GeneroSelect = () => {
     const { genero } = this.state;
     return (
-      <View style={{ marginTop: 12, width: "100%", alignItems: "center" }}>
-        <Text style={[styles.sectionLabel, { textAlign: "center" }]}>Gênero</Text>
+      <View style={{ margin: 9, width: "100%"}}>
+        <Text style={[styles.sectionLabel]}>Gênero</Text>
         <View style={styles.chipsRow}>
           {GENDER_OPTIONS.map((opt) => {
             const active = genero === opt;
@@ -159,7 +176,7 @@ export default class Cadastro extends React.Component {
   };
 
   render() {
-    const { nome, email, nascimento, celular, senha, confirmarSenha } = this.state;
+    const { nome, usuario, email, nascimento, celular, senha, confirmarSenha } = this.state;
 
     return (
       <LinearGradient
@@ -169,10 +186,7 @@ export default class Cadastro extends React.Component {
         style={styles.page}
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={styles.container}
-            keyboardShouldPersistTaps="handled"
-          >
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
             <View style={styles.greetingCard}>
               <Text style={styles.greetTitle}>Olá!</Text>
               <Text style={styles.greetSub}>Crie sua conta para começar a explorar.</Text>
@@ -181,8 +195,32 @@ export default class Cadastro extends React.Component {
             <View style={styles.formCard}>
               <Text style={styles.formTitle}>cadastro</Text>
 
-              {this.Input({ icon: "account", placeholder: "Nome completo", value: nome, onChangeText: (v) => this.setState({ nome: v }), autoCapitalize: "words" })}
-              {this.Input({ icon: "email", placeholder: "Email", keyboardType: "email-address", value: email, onChangeText: (v) => this.setState({ email: v }) })}
+              {this.Input({
+                icon: "account",
+                placeholder: "Nome completo",
+                value: nome,
+                onChangeText: (v) => this.setState({ nome: v }),
+                autoCapitalize: "words",
+              })}
+
+              {this.Input({
+                icon: "account-circle",
+                placeholder: "Nome de usuário (ex.: seu_nome)",
+                value: usuario,
+                onChangeText: (v) =>
+                  this.setState({ usuario: v.replace(/\s+/g, "_") }), 
+                autoCapitalize: "none",
+                maxLength: 20,
+              })}
+
+
+              {this.Input({
+                icon: "email",
+                placeholder: "Email",
+                keyboardType: "email-address",
+                value: email,
+                onChangeText: (v) => this.setState({ email: v }),
+              })}
 
               <View style={styles.inputPill}>
                 <View style={styles.inputIcon}>
@@ -224,6 +262,9 @@ export default class Cadastro extends React.Component {
               <Pressable onPress={this.gravar} style={styles.ctaBtn}>
                 <Text style={styles.ctaTxt}>Cadastrar</Text>
               </Pressable>
+
+            
+             
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -236,8 +277,6 @@ const MAX_W = 480;
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
-
-  // CENTRO vertical e horizontal no conteúdo
   container: {
     padding: 18,
     paddingBottom: 28,
@@ -245,8 +284,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
-  // card "Olá!" centralizado e com largura máxima
   greetingCard: {
     backgroundColor: COLORS.blue500,
     borderRadius: 22,
@@ -266,8 +303,6 @@ const styles = StyleSheet.create({
   },
   greetTitle: { color: COLORS.white, fontSize: 20, fontWeight: "800", marginBottom: 6, textAlign: "center" },
   greetSub: { color: COLORS.white, opacity: 0.9, fontSize: 13, textAlign: "center" },
-
-  // form centralizado
   formCard: {
     backgroundColor: COLORS.white,
     borderRadius: 22,
@@ -286,13 +321,12 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     color: COLORS.blue500,
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "800",
     marginBottom: 12,
     textTransform: "lowercase",
     textAlign: "center",
   },
-
   inputPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -329,11 +363,10 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: COLORS.blue500, borderColor: COLORS.blue500 },
   chipTxt: { color: COLORS.textSub, fontWeight: "700" },
   chipTxtActive: { color: COLORS.white, fontWeight: "800" },
-
   ctaBtn: {
     backgroundColor: COLORS.blue500,
     borderRadius: 16,
-    paddingVertical: 14,
+    padding: 18,
     alignItems: "center",
     marginTop: 14,
     alignSelf: "center",
