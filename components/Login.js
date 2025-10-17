@@ -117,7 +117,7 @@ export default class Login extends React.Component {
               contentContainerStyle={estilos.conteudo}
               keyboardShouldPersistTaps="handled"
             >
-              {/* HERO com logo sobreposta */}
+           
               <View style={estilos.areaHeroi}>
                 <View style={estilos.logoContainerAbsoluto}>
                   <Image
@@ -134,7 +134,7 @@ export default class Login extends React.Component {
                 </View>
               </View>
 
-              {/* Formulário */}
+      
               <View style={estilos.cartaoFormulario}>
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>

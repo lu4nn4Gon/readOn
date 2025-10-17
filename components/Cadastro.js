@@ -170,15 +170,15 @@ export default class Cadastro extends React.Component {
           >
             <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
 
-              {/* Cartão de boas-vindas */}
+         
               <View style={estilos.cartaoOla}>
                 <Text style={estilos.subtituloOla}>Crie sua conta para começar a explorar.</Text>
               </View>
 
-              {/* Cartão do formulário */}
+          
               <View style={estilos.cartaoFormulario}>
 
-                {/* Nome completo */}
+              
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
@@ -193,7 +193,7 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Nome de usuário */}
+               
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="account-circle" size={20} color={CORES.azul500} />
@@ -209,7 +209,7 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Email */}
+              
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="email" size={20} color={CORES.azul500} />
@@ -225,7 +225,7 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Data de nascimento */}
+              
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="calendar" size={20} color={CORES.azul500} />
@@ -242,10 +242,10 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Gênero */}
+         
                 {this.GeneroSelect()}
 
-                {/* Celular */}
+               
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="phone" size={20} color={CORES.azul500} />
@@ -262,7 +262,6 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Senhas */}
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
                     <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
@@ -293,7 +292,7 @@ export default class Cadastro extends React.Component {
                   />
                 </View>
 
-                {/* Botão Cadastrar */}
+              
                 <Pressable onPress={this.gravar} style={estilos.botaoPrincipal}>
                   <Text style={estilos.textoBotao}>Cadastrar</Text>
                 </Pressable>
