@@ -5,23 +5,18 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Login from "./components/Login";
 import Cadastro from "./components/Cadastro";
+import Home from "./components/Home"; // <= novo
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-     
       <StatusBar style="dark" translucent />
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerShown: false, 
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      >
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Cadastro" component={Cadastro} />
+        <Stack.Screen name="Home" component={Home} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
