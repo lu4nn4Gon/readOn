@@ -1,4 +1,4 @@
-import "react-native-gesture-handler";
+// App.js
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -16,8 +16,7 @@ export default function App() {
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
-          headerTitleStyle: { fontWeight: "800" },
-          headerShadowVisible: false,
+          headerShown: false, 
         }}
       >
         <Stack.Screen name="Login" component={Login} />
