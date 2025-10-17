@@ -14,27 +14,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+// opções de gênero para selecionar
 const GENDER_OPTIONS = ["Feminino", "Masculino", "Outro"];
 
-/** PALETA (hex em tudo) */
-const COLORS = {
+// cores
+const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd:   "#6ef0eaff",
-  blue500: "#038b89ff",
-  blue300: "#b3b3b3ff",
-  blueIconBg: "#fbf5fdd6",
-  textDark: "#000000ff",
-  textSub:  "#58627A",
-  white: "#ffffffff",
-  cardBorder: "#D6D5D3",
-  shadowStrong: "#040000FF",
-  shadowSoft:   "#000000a7",
+  azul500: "#038b89ff",
+  azul300: "#b3b3b3ff",
+  fundoIconeAzul: "#fbf5fdd6",
+  textoEscuro: "#000000ff",
+  textoSuave:  "#58627A",
+  branco: "#ffffffff",
+  bordaCartao: "#D6D5D3",
+  sombraForte: "#040000FF",
+  sombraSuave: "#000000a7",
 };
 
 export default class Cadastro extends React.Component {
   state = {
     nome: "",
-    usuario: "",      // <- novo campo
+    usuario: "",
     email: "",
     nascimento: "",
     genero: "",
@@ -44,20 +45,21 @@ export default class Cadastro extends React.Component {
   };
 
   componentDidMount() {
-    this.props.navigation?.setOptions({ title: "cadastro" });
+    this.props.navigation?.setOptions({ title: "Cadastro" });
   }
 
+  // utilidades de validação/mascara
   somenteDigitos = (v) => (v || "").replace(/\D+/g, "");
   senhaForte = (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v || "");
   emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
-  usernameValido = (v) => /^[a-z0-9_]{3,20}$/.test((v || "").toLowerCase()); // 3-20, letras/números/_
+  usuarioValido = (v) => /^[a-z0-9_]{3,20}$/.test((v || "").toLowerCase());
 
   validarDataBR = (v) => {
     const m = /^([0-2]\d|3[01])\/(0\d|1[0-2])\/\d{4}$/.exec(v || "");
     if (!m) return false;
     const [dd, mm, yyyy] = v.split("/").map((x) => parseInt(x, 10));
     const dt = new Date(yyyy, mm - 1, dd);
-    return dt.getFullYear() === yyyy && dt.getMonth() === mm - 1 && dt.getDate() === dd;
+    return dt.getFullYear() === yyyy && dt.getMonth() === (mm - 1) && dt.getDate() === dd;
   };
 
   formatarDataInput = (v) => {
@@ -87,27 +89,24 @@ export default class Cadastro extends React.Component {
         Alert.alert("Atenção", "Preencha todos os campos.");
         return;
       }
-      if (!this.usernameValido(username))
-        return Alert.alert("Nome de usuário inválido",
-          "Use 3–20 caracteres, apenas letras minúsculas, números ou _ (underline).");
-
+      if (!this.usuarioValido(username))
+        return Alert.alert("Nome de usuário inválido", "Use 3–20 caracteres, apenas letras minúsculas, números ou _.");
       if (!this.emailValido(emailKey)) return Alert.alert("Email inválido", "Informe um email válido.");
       if (!this.validarDataBR(nascimento)) return Alert.alert("Data inválida", "Use DD/MM/AAAA.");
       if (celN.length < 10 || celN.length > 11) return Alert.alert("Celular inválido", "Use DDD + número.");
       if (!this.senhaForte(senha)) return Alert.alert("Senha fraca", "Mín. 8, com 1 maiúscula, 1 minúscula e 1 número.");
       if (senha !== confirmarSenha) return Alert.alert("Senhas diferentes", "Confirmação não confere.");
 
-      // unicidade
       const existeEmail = await AsyncStorage.getItem(emailKey);
       if (existeEmail) return Alert.alert("Email já cadastrado", "Tente outro.");
 
-      const userIndexKey = `@username:${username}`;
-      const existeUser = await AsyncStorage.getItem(userIndexKey);
+      const chaveUsuario = `@username:${username}`;
+      const existeUser = await AsyncStorage.getItem(chaveUsuario);
       if (existeUser) return Alert.alert("Nome de usuário em uso", "Escolha outro @nome.");
 
       const registro = {
         nome: nome.trim(),
-        usuario: username, // <- salvo como aparece na plataforma (minúsculo)
+        usuario: username,
         email: emailKey,
         nascimento: nascimento.trim(),
         genero: genero.trim(),
@@ -116,9 +115,8 @@ export default class Cadastro extends React.Component {
         criadoEm: new Date().toISOString(),
       };
 
-      // salva registro e índice de username
       await AsyncStorage.setItem(emailKey, JSON.stringify(registro));
-      await AsyncStorage.setItem(userIndexKey, emailKey);
+      await AsyncStorage.setItem(chaveUsuario, emailKey);
 
       Alert.alert("Sucesso", "Cadastro salvo!");
       this.setState({
@@ -137,36 +135,23 @@ export default class Cadastro extends React.Component {
     }
   };
 
-  Input = ({ icon, placeholder, secure, keyboardType, value, onChangeText, maxLength, autoCapitalize = "none" }) => (
-    <View style={styles.inputPill}>
-      <View style={styles.inputIcon}>
-        <MaterialCommunityIcons name={icon} size={20} color={COLORS.blue500} />
-      </View>
-      <TextInput
-        style={styles.inputText}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.textSub}
-        secureTextEntry={secure}
-        keyboardType={keyboardType}
-        value={value}
-        onChangeText={onChangeText}
-        maxLength={maxLength}
-        autoCapitalize={autoCapitalize}
-      />
-    </View>
-  );
-
   GeneroSelect = () => {
     const { genero } = this.state;
     return (
-      <View style={{ margin: 9, width: "100%"}}>
-        <Text style={[styles.sectionLabel]}>Gênero</Text>
-        <View style={styles.chipsRow}>
+      <View style={{ margin: 9, width: "100%" }}>
+        <Text style={estilos.rotuloSecao}>Gênero</Text>
+        <View style={estilos.linhaChips}>
           {GENDER_OPTIONS.map((opt) => {
-            const active = genero === opt;
+            const ativo = genero === opt;
             return (
-              <Pressable key={opt} onPress={() => this.setState({ genero: opt })} style={[styles.chip, active && styles.chipActive]}>
-                <Text style={[styles.chipTxt, active && styles.chipTxtActive]}>{opt}</Text>
+              <Pressable
+                key={opt}
+                onPress={() => this.setState({ genero: opt })}
+                style={[estilos.chip, ativo && estilos.chipAtivo]}
+              >
+                <Text style={[estilos.textoChip, ativo && estilos.textoChipAtivo]}>
+                  {opt}
+                </Text>
               </Pressable>
             );
           })}
@@ -180,56 +165,79 @@ export default class Cadastro extends React.Component {
 
     return (
       <LinearGradient
-        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+        colors={[CORES.gradientStart, CORES.gradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.page}
+        style={estilos.pagina}
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-            <View style={styles.greetingCard}>
-              <Text style={styles.greetTitle}>Olá!</Text>
-              <Text style={styles.greetSub}>Crie sua conta para começar a explorar.</Text>
+          <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
+            {/* cartão de boas-vindas */}
+            <View style={estilos.cartaoOla}>
+              <Text style={estilos.tituloOla}>Olá!</Text>
+              <Text style={estilos.subtituloOla}>Crie sua conta para começar a explorar.</Text>
             </View>
 
-            <View style={styles.formCard}>
-              <Text style={styles.formTitle}>cadastro</Text>
+            {/* cartão do formulário */}
+            <View style={estilos.cartaoFormulario}>
+              <Text style={estilos.tituloFormulario}>Cadastro</Text>
 
-              {this.Input({
-                icon: "account",
-                placeholder: "Nome completo",
-                value: nome,
-                onChangeText: (v) => this.setState({ nome: v }),
-                autoCapitalize: "words",
-              })}
-
-              {this.Input({
-                icon: "account-circle",
-                placeholder: "Nome de usuário (ex.: seu_nome)",
-                value: usuario,
-                onChangeText: (v) =>
-                  this.setState({ usuario: v.replace(/\s+/g, "_") }), 
-                autoCapitalize: "none",
-                maxLength: 20,
-              })}
-
-
-              {this.Input({
-                icon: "email",
-                placeholder: "Email",
-                keyboardType: "email-address",
-                value: email,
-                onChangeText: (v) => this.setState({ email: v }),
-              })}
-
-              <View style={styles.inputPill}>
-                <View style={styles.inputIcon}>
-                  <MaterialCommunityIcons name="calendar" size={20} color={COLORS.blue500} />
+              {/* Nome completo */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
                 </View>
                 <TextInput
-                  style={styles.inputText}
+                  style={estilos.campoTexto}
+                  placeholder="Nome completo"
+                  placeholderTextColor={CORES.textoSuave}
+                  value={nome}
+                  onChangeText={(v) => this.setState({ nome: v })}
+                  autoCapitalize="words"
+                />
+              </View>
+
+              {/* Nome de usuário */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="account-circle" size={20} color={CORES.azul500} />
+                </View>
+                <TextInput
+                  style={estilos.campoTexto}
+                  placeholder="Nome de usuário (ex.: seu_nome)"
+                  placeholderTextColor={CORES.textoSuave}
+                  value={usuario}
+                  onChangeText={(v) => this.setState({ usuario: v.replace(/\s+/g, "_") })}
+                  autoCapitalize="none"
+                  maxLength={20}
+                />
+              </View>
+
+              {/* Email */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="email" size={20} color={CORES.azul500} />
+                </View>
+                <TextInput
+                  style={estilos.campoTexto}
+                  placeholder="Email"
+                  placeholderTextColor={CORES.textoSuave}
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={(v) => this.setState({ email: v })}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Data de nascimento */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="calendar" size={20} color={CORES.azul500} />
+                </View>
+                <TextInput
+                  style={estilos.campoTexto}
                   placeholder="Data de nascimento (DD/MM/AAAA)"
-                  placeholderTextColor={COLORS.textSub}
+                  placeholderTextColor={CORES.textoSuave}
                   keyboardType="number-pad"
                   value={nascimento}
                   onChangeText={(v) => this.setState({ nascimento: this.formatarDataInput(v) })}
@@ -238,16 +246,18 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
+              {/* Seletor de gênero */}
               {this.GeneroSelect()}
 
-              <View style={styles.inputPill}>
-                <View style={styles.inputIcon}>
-                  <MaterialCommunityIcons name="phone" size={20} color={COLORS.blue500} />
+              {/* Celular */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="phone" size={20} color={CORES.azul500} />
                 </View>
                 <TextInput
-                  style={styles.inputText}
+                  style={estilos.campoTexto}
                   placeholder="Celular ((00) 00000-0000)"
-                  placeholderTextColor={COLORS.textSub}
+                  placeholderTextColor={CORES.textoSuave}
                   keyboardType="number-pad"
                   value={celular}
                   onChangeText={(v) => this.setState({ celular: this.formatarCelular(v) })}
@@ -256,15 +266,42 @@ export default class Cadastro extends React.Component {
                 />
               </View>
 
-              {this.Input({ icon: "lock", placeholder: "Senha forte", secure: true, value: senha, onChangeText: (v) => this.setState({ senha: v }) })}
-              {this.Input({ icon: "lock-check", placeholder: "Verificar senha", secure: true, value: confirmarSenha, onChangeText: (v) => this.setState({ confirmarSenha: v }) })}
+              {/* Senha */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                </View>
+                <TextInput
+                  style={estilos.campoTexto}
+                  placeholder="Senha forte"
+                  placeholderTextColor={CORES.textoSuave}
+                  value={senha}
+                  onChangeText={(v) => this.setState({ senha: v })}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
 
-              <Pressable onPress={this.gravar} style={styles.ctaBtn}>
-                <Text style={styles.ctaTxt}>Cadastrar</Text>
+              {/* Confirmar senha */}
+              <View style={estilos.campoCapsula}>
+                <View style={estilos.iconeCampo}>
+                  <MaterialCommunityIcons name="lock-check" size={20} color={CORES.azul500} />
+                </View>
+                <TextInput
+                  style={estilos.campoTexto}
+                  placeholder="Verificar senha"
+                  placeholderTextColor={CORES.textoSuave}
+                  value={confirmarSenha}
+                  onChangeText={(v) => this.setState({ confirmarSenha: v })}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Botão cadastrar */}
+              <Pressable onPress={this.gravar} style={estilos.botaoPrincipal}>
+                <Text style={estilos.textoBotao}>Cadastrar</Text>
               </Pressable>
-
-            
-             
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -273,103 +310,112 @@ export default class Cadastro extends React.Component {
   }
 }
 
-const MAX_W = 480;
+const LARGURA_MAX = 480;
 
-const styles = StyleSheet.create({
-  page: { flex: 1 },
-  container: {
+const estilos = StyleSheet.create({
+  pagina: { flex: 1 },
+
+  conteudo: {
     padding: 18,
     paddingBottom: 28,
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  greetingCard: {
-    backgroundColor: COLORS.blue500,
+
+  cartaoOla: {
+    backgroundColor: CORES.azul500,
     borderRadius: 22,
     padding: 18,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.blue500,
-    shadowColor: COLORS.shadowStrong,
+    borderColor: CORES.azul500,
+    shadowColor: CORES.sombraForte,
     shadowOpacity: 0.18,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 15 },
     elevation: 6,
     width: "100%",
-    maxWidth: MAX_W,
+    maxWidth: LARGURA_MAX,
     alignSelf: "center",
     alignItems: "center",
   },
-  greetTitle: { color: COLORS.white, fontSize: 20, fontWeight: "800", marginBottom: 6, textAlign: "center" },
-  greetSub: { color: COLORS.white, opacity: 0.9, fontSize: 13, textAlign: "center" },
-  formCard: {
-    backgroundColor: COLORS.white,
+  tituloOla: { color: CORES.branco, fontSize: 20, fontWeight: "800", marginBottom: 6, textAlign: "center" },
+  subtituloOla: { color: CORES.branco, opacity: 0.9, fontSize: 13, textAlign: "center" },
+
+  cartaoFormulario: {
+    backgroundColor: CORES.branco,
     borderRadius: 22,
     padding: 18,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    shadowColor: COLORS.shadowStrong,
+    borderColor: CORES.bordaCartao,
+    shadowColor: CORES.sombraForte,
     shadowOpacity: 0.14,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 25 },
     elevation: 6,
     width: "100%",
-    maxWidth: MAX_W,
+    maxWidth: LARGURA_MAX,
     alignSelf: "center",
     alignItems: "stretch",
   },
-  formTitle: {
-    color: COLORS.blue500,
+  tituloFormulario: {
+    color: CORES.azul500,
     fontSize: 19,
     fontWeight: "800",
     marginBottom: 12,
     textTransform: "lowercase",
     textAlign: "center",
   },
-  inputPill: {
+
+  campoCapsula: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.white,
+    backgroundColor: CORES.branco,
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.blue300,
+    borderColor: CORES.azul300,
   },
-  inputIcon: {
+  iconeCampo: {
     width: 36,
     height: 36,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.blueIconBg,
+    backgroundColor: CORES.fundoIconeAzul,
     marginRight: 10,
   },
-  inputText: { flex: 1, color: COLORS.textDark, paddingVertical: 10, fontSize: 14 },
-  sectionLabel: { color: COLORS.textDark, fontWeight: "700", marginBottom: 8 },
-  chipsRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+  campoTexto: { flex: 1, color: CORES.textoEscuro, paddingVertical: 10, fontSize: 14 },
+
+  rotuloSecao: { color: CORES.textoEscuro, fontWeight: "700", marginBottom: 8 },
+
+  linhaChips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+
   chip: {
     borderWidth: 1,
-    borderColor: COLORS.blue300,
+    borderColor: CORES.azul300,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
     marginHorizontal: 4,
     marginBottom: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: CORES.branco,
   },
-  chipActive: { backgroundColor: COLORS.blue500, borderColor: COLORS.blue500 },
-  chipTxt: { color: COLORS.textSub, fontWeight: "700" },
-  chipTxtActive: { color: COLORS.white, fontWeight: "800" },
-  ctaBtn: {
-    backgroundColor: COLORS.blue500,
+  chipAtivo: { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
+
+  textoChip: { color: CORES.textoSuave, fontWeight: "700" },
+  textoChipAtivo: { color: CORES.branco, fontWeight: "800" },
+
+  botaoPrincipal: {
+    backgroundColor: CORES.azul500,
     borderRadius: 16,
     padding: 18,
     alignItems: "center",
     marginTop: 14,
     alignSelf: "center",
   },
-  ctaTxt: { color: COLORS.white, fontWeight: "800", fontSize: 16, textAlign: "center" },
+  textoBotao: { color: CORES.branco, fontWeight: "800", fontSize: 16, textAlign: "center" },
 });
