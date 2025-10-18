@@ -32,22 +32,23 @@ const LIVROS = [
     id: "o-amanhecer-na-colheita",
     titulo: "O Amanhecer na Colheita",
     autor: "Suzanne Collins",
-    sinopse:
-      "Velhas tradições, novos segredos e um destino que muda ao nascer do sol.",
+    genero: "Distopia · YA",
+    sinopse: "Velhas tradições, novos segredos e um destino que muda ao nascer do sol.",
     capa: require("../assets/livros/o-amanhecer-na-colheita.jpg"),
   },
   {
     id: "jogos-vorazes",
     titulo: "Jogos Vorazes",
     autor: "Suzanne Collins",
-    sinopse:
-      "Katniss entra numa luta televisiva pela sobrevivência e pela liberdade.",
+    genero: "Distopia · YA",
+    sinopse: "Katniss entra numa luta televisiva pela sobrevivência e pela liberdade.",
     capa: require("../assets/livros/jogos-vorazes.jpg"),
   },
   {
     id: "jogos-vorazes-em-chamas",
     titulo: "Jogos Vorazes: Em Chamas",
     autor: "Suzanne Collins",
+    genero: "Distopia · YA",
     sinopse: "A faísca da rebelião cresce enquanto o perigo se aproxima.",
     capa: require("../assets/livros/jogos-vorazes-em-chamas.jpg"),
   },
@@ -55,6 +56,7 @@ const LIVROS = [
     id: "jogos-vorazes-a-esperanca",
     titulo: "Jogos Vorazes: A Esperança",
     autor: "Suzanne Collins",
+    genero: "Distopia · YA",
     sinopse: "O fim do regime se aproxima e escolhas custam caro.",
     capa: require("../assets/livros/jogos-vorazes-a-esperanca.jpg"),
   },
@@ -62,6 +64,7 @@ const LIVROS = [
     id: "como-nos-filmes",
     titulo: "Como nos Filmes",
     autor: "Lynn Painter",
+    genero: "Romance contemporâneo",
     sinopse: "Quando a vida real resolve seguir um roteiro inesquecível.",
     capa: require("../assets/livros/como-nos-filmes.jpg"),
   },
@@ -69,6 +72,7 @@ const LIVROS = [
     id: "nao-e-como-nos-filmes",
     titulo: "Não é como nos Filmes",
     autor: "Lynn Painter",
+    genero: "Romance contemporâneo",
     sinopse: "Nem todo clichê resiste à realidade — e tudo bem.",
     capa: require("../assets/livros/nao-e-como-nos-filmes.jpg"),
   },
@@ -76,6 +80,7 @@ const LIVROS = [
     id: "a-empregada",
     titulo: "A Empregada",
     autor: "Freida McFadden",
+    genero: "Thriller psicológico",
     sinopse: "Uma casa perfeita esconde segredos que podem ser fatais.",
     capa: require("../assets/livros/a-empregada.jpg"),
   },
@@ -83,6 +88,7 @@ const LIVROS = [
     id: "a-empregada-esta-de-olho",
     titulo: "A Empregada Está de Olho",
     autor: "Freida McFadden",
+    genero: "Thriller psicológico",
     sinopse: "Velhos fantasmas retornam e nada passa despercebido.",
     capa: require("../assets/livros/a-empregada-esta-de-olho.jpg"),
   },
@@ -90,6 +96,7 @@ const LIVROS = [
     id: "o-segredo-da-empregada",
     titulo: "O Segredo da Empregada",
     autor: "Freida McFadden",
+    genero: "Thriller psicológico",
     sinopse: "Uma verdade enterrada ameaça vir à tona.",
     capa: require("../assets/livros/o-segredo-da-empregada.jpg"),
   },
@@ -97,14 +104,15 @@ const LIVROS = [
     id: "o-massacre-da-mansao-hope",
     titulo: "O Massacre da Mansão Hope",
     autor: "Riley Sager",
-    sinopse:
-      "Um crime antigo, convidados suspeitos e pistas por toda parte.",
+    genero: "Suspense · Mistério",
+    sinopse: "Um crime antigo, convidados suspeitos e pistas por toda parte.",
     capa: require("../assets/livros/o-massacre-da-mansao-hope.jpg"),
   },
   {
     id: "asas-reluzentes",
     titulo: "Asas Reluzentes",
     autor: "Allison Saft",
+    genero: "Fantasia · Romantasy",
     sinopse: "Entre luz e sombra, uma guerreira encontra seu próprio voo.",
     capa: require("../assets/livros/asas-reluzentes.jpg"),
   },
@@ -112,6 +120,7 @@ const LIVROS = [
     id: "como-sobreviver-a-um-filme-de-terror",
     titulo: "Como sobreviver a um filme de terror",
     autor: "Scarlett Dunmore",
+    genero: "Terror · Comédia",
     sinopse: "As regras não escritas para não ser a próxima vítima.",
     capa: require("../assets/livros/como-sobreviver-a-um-filme-de-terror.jpg"),
   },
@@ -137,7 +146,7 @@ export default class AdicionarLivro extends React.Component {
     const q = this.state.busca.trim().toLowerCase();
     if (!q) return LIVROS;
     return LIVROS.filter((l) =>
-      `${l.titulo} ${l.autor}`.toLowerCase().includes(q)
+      `${l.titulo} ${l.autor} ${l.genero}`.toLowerCase().includes(q)
     );
   };
 
@@ -145,21 +154,19 @@ export default class AdicionarLivro extends React.Component {
     <Pressable onPress={() => this.abrirDetalhe(item)} style={estilos.item}>
       <Image source={item.capa} style={estilos.itemCapa} />
       <View style={{ flex: 1 }}>
-        <Text style={estilos.itemTitulo} numberOfLines={1}>
-          {item.titulo}
-        </Text>
-        <Text style={estilos.itemAutor} numberOfLines={1}>
-          {item.autor}
-        </Text>
-        <Text style={estilos.itemSinopse} numberOfLines={2}>
-          {item.sinopse}
-        </Text>
+        <Text style={estilos.itemTitulo} numberOfLines={1}>{item.titulo}</Text>
+        <Text style={estilos.itemAutor} numberOfLines={1}>{item.autor}</Text>
+
+        <View style={estilos.linhaChips}>
+          <View style={estilos.chipGenero}>
+            <MaterialCommunityIcons name="tag-outline" size={12} color={CORES.azul500} />
+            <Text style={estilos.chipGeneroTxt} numberOfLines={1}>{item.genero}</Text>
+          </View>
+        </View>
+
+        <Text style={estilos.itemSinopse} numberOfLines={2}>{item.sinopse}</Text>
       </View>
-      <MaterialCommunityIcons
-        name="chevron-right"
-        size={22}
-        color={CORES.textoSuave}
-      />
+      <MaterialCommunityIcons name="chevron-right" size={22} color={CORES.textoSuave} />
     </Pressable>
   );
 
@@ -167,27 +174,17 @@ export default class AdicionarLivro extends React.Component {
     const dados = this.filtrar();
 
     return (
-      <LinearGradient
-        colors={[CORES.gradientStart, CORES.gradientEnd]}
-        style={{ flex: 1 }}
-      >
+      <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ flex: 1 }}
-          >
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
             <View style={estilos.conteudo}>
               <Text style={estilos.tituloPagina}>Adicionar livro</Text>
 
               <View style={estilos.campoBuscaWrap}>
-                <MaterialCommunityIcons
-                  name="magnify"
-                  size={20}
-                  color={CORES.textoSuave}
-                />
+                <MaterialCommunityIcons name="magnify" size={20} color={CORES.textoSuave} />
                 <TextInput
                   style={estilos.campoBusca}
-                  placeholder="Buscar por título ou autor"
+                  placeholder="Buscar por título, autor ou gênero"
                   placeholderTextColor={CORES.azul300}
                   value={this.state.busca}
                   onChangeText={(t) => this.setState({ busca: t })}
@@ -195,15 +192,8 @@ export default class AdicionarLivro extends React.Component {
                   autoCapitalize="none"
                 />
                 {this.state.busca.length > 0 && (
-                  <Pressable
-                    onPress={() => this.setState({ busca: "" })}
-                    hitSlop={12}
-                  >
-                    <MaterialCommunityIcons
-                      name="close-circle"
-                      size={18}
-                      color={CORES.azul300}
-                    />
+                  <Pressable onPress={() => this.setState({ busca: "" })} hitSlop={12}>
+                    <MaterialCommunityIcons name="close-circle" size={18} color={CORES.azul300} />
                   </Pressable>
                 )}
               </View>
@@ -259,6 +249,7 @@ const estilos = StyleSheet.create({
     elevation: 2,
   },
   campoBusca: { flex: 1, color: CORES.texto, fontSize: 14 },
+
   item: {
     flexDirection: "row",
     gap: 12,
@@ -283,5 +274,21 @@ const estilos = StyleSheet.create({
   },
   itemTitulo: { color: CORES.texto, fontWeight: "800", fontSize: 15 },
   itemAutor: { color: CORES.textoSuave, marginTop: 2, marginBottom: 6 },
+
+  linhaChips: { flexDirection: "row", gap: 8, marginBottom: 6 },
+  chipGenero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(3,139,137,0.08)",
+    borderWidth: 1,
+    borderColor: CORES.borda,
+    alignSelf: "flex-start",
+  },
+  chipGeneroTxt: { color: CORES.azul500, fontWeight: "800", fontSize: 12 },
+
   itemSinopse: { color: CORES.textoSuave, fontSize: 12 },
 });
