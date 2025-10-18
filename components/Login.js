@@ -16,7 +16,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 const logo = require("../assets/logo.png");
 
 const CORES = {
@@ -39,7 +38,8 @@ export default class Login extends React.Component {
     carregando: false,
   };
 
-  _ehEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
+  _ehEmail = (v) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").toLowerCase());
 
   entrar = async () => {
     try {
@@ -79,8 +79,19 @@ export default class Login extends React.Component {
       }
 
       this.setState({ carregando: false, senha: "" });
-      Alert.alert("Bem-vindo(a)!", `Olá, ${user.nome}!`);
 
+      Alert.alert(
+        "Bem-vindo(a)!",
+        `Olá, ${user.nome}!`,
+        [
+          {
+            text: "OK",
+            onPress: () =>
+              this.props.navigation?.replace("Home", { userNome: user.nome }),
+          },
+        ],
+        { cancelable: false }
+      );
     } catch {
       this.setState({ carregando: false });
       Alert.alert("Erro", "Não foi possível realizar o login.");
@@ -97,17 +108,18 @@ export default class Login extends React.Component {
         end={{ x: 1, y: 1 }}
         style={estilos.pagina}
       >
-    
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ flex: 1 }}
           >
-            <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
-              
-      
-              <View style={estilos.heroWrap}>
-                <View style={estilos.logoWrapAbs}>
+            <ScrollView
+              contentContainerStyle={estilos.conteudo}
+              keyboardShouldPersistTaps="handled"
+            >
+           
+              <View style={estilos.areaHeroi}>
+                <View style={estilos.logoContainerAbsoluto}>
                   <Image
                     source={logo}
                     style={estilos.logoSobreposta}
@@ -116,20 +128,21 @@ export default class Login extends React.Component {
                   />
                 </View>
 
-                
-                <View style={[estilos.cartaoOla, estilos.cartaoOlaComLogo]}>
-                  <Text style={estilos.tituloOla}>Bem-vindo!!!</Text>
-                  <Text style={estilos.subtituloOla}>Entre para continuar</Text>
+                <View style={[estilos.cartaoBemVindo, estilos.cartaoBemVindoComLogo]}>
+                  <Text style={estilos.tituloBemVindo}>Bem-vindo!!!</Text>
+                  <Text style={estilos.subtituloBemVindo}>Entre para continuar</Text>
                 </View>
               </View>
-  
+
+      
               <View style={estilos.cartaoFormulario}>
-  
-
-
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
-                    <MaterialCommunityIcons name="account" size={20} color={CORES.azul500} />
+                    <MaterialCommunityIcons
+                      name="account"
+                      size={20}
+                      color={CORES.azul500}
+                    />
                   </View>
                   <TextInput
                     style={estilos.campoTexto}
@@ -142,10 +155,13 @@ export default class Login extends React.Component {
                   />
                 </View>
 
-           
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
-                    <MaterialCommunityIcons name="lock" size={20} color={CORES.azul500} />
+                    <MaterialCommunityIcons
+                      name="lock"
+                      size={20}
+                      color={CORES.azul500}
+                    />
                   </View>
                   <TextInput
                     style={estilos.campoTexto}
@@ -158,16 +174,16 @@ export default class Login extends React.Component {
                   />
                 </View>
 
-     
                 <Pressable
                   disabled={carregando}
                   onPress={this.entrar}
                   style={[estilos.botaoPrincipal, carregando && { opacity: 0.7 }]}
                 >
-                  <Text style={estilos.textoBotao}>{carregando ? "Entrando..." : "Entrar"}</Text>
+                  <Text style={estilos.textoBotao}>
+                    {carregando ? "Entrando..." : "Entrar"}
+                  </Text>
                 </Pressable>
 
-      
                 <Pressable
                   onPress={() => this.props.navigation?.navigate("Cadastro")}
                   style={estilos.botaoSecundario}
@@ -186,9 +202,7 @@ export default class Login extends React.Component {
 const LARGURA_MAX = 480;
 
 const estilos = StyleSheet.create({
-
   pagina: { flex: 1 },
-
   conteudo: {
     padding: 18,
     paddingBottom: 28,
@@ -197,17 +211,17 @@ const estilos = StyleSheet.create({
     alignItems: "center",
   },
 
-  
-  heroWrap: {
+ 
+  areaHeroi: {
     width: "100%",
     maxWidth: LARGURA_MAX,
     alignSelf: "center",
     position: "relative",
     marginBottom: 16,
   },
-  logoWrapAbs: {
+  logoContainerAbsoluto: {
     position: "absolute",
-    top: -190,            
+    top: -190,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -219,8 +233,8 @@ const estilos = StyleSheet.create({
     resizeMode: "contain",
   },
 
-
-  cartaoOla: {
+  
+  cartaoBemVindo: {
     backgroundColor: CORES.azul500,
     borderRadius: 22,
     padding: 18,
@@ -236,12 +250,23 @@ const estilos = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
   },
-
-  cartaoOlaComLogo: {
+  cartaoBemVindoComLogo: {
     paddingTop: 65,
   },
-  tituloOla: { color: CORES.branco, fontSize: 20, fontWeight: "800", marginBottom: 6, textAlign: "center" },
-  subtituloOla: { color: CORES.branco, opacity: 0.9, fontSize: 13, textAlign: "center" },
+  tituloBemVindo: {
+    color: CORES.branco,
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  subtituloBemVindo: {
+    color: CORES.branco,
+    opacity: 0.9,
+    fontSize: 13,
+    textAlign: "center",
+  },
+
 
   cartaoFormulario: {
     backgroundColor: CORES.branco,
@@ -258,14 +283,6 @@ const estilos = StyleSheet.create({
     maxWidth: LARGURA_MAX,
     alignSelf: "center",
     alignItems: "stretch",
-  },
-  tituloFormulario: {
-    color: CORES.azul500,
-    fontSize: 19,
-    fontWeight: "800",
-    marginBottom: 12,
-    textTransform: "lowercase",
-    textAlign: "center",
   },
 
   campoCapsula: {
@@ -289,6 +306,7 @@ const estilos = StyleSheet.create({
     marginRight: 10,
   },
   campoTexto: { flex: 1, color: CORES.textoEscuro, paddingVertical: 10, fontSize: 14 },
+
 
   botaoPrincipal: {
     backgroundColor: CORES.azul500,
