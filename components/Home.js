@@ -18,10 +18,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 const KEY_CURRENT_BOOK = "@readon:current_book";
 const arteHome = require("../assets/home.png");
 
-
 const CORES = {
   gradientStart: "#d6fcf9ff",
-  gradientEnd:   "#6ef0eaff",
+  gradientEnd: "#6ef0eaff",
   azul500: "#038b89ff",
   azul300: "#b3b3b3ff",
   texto: "#2C3E50",
@@ -35,15 +34,17 @@ const CORES = {
 export default class Home extends React.Component {
   state = {
     carregando: true,
-    livro: null,          // { id, titulo, autor, capa, inicioEm }
-    listaDesejos: [],     // vazia por enquanto (placeholders)
+    livro: null,
+    listaDesejos: [],
   };
 
   componentDidMount() {
     this._unsub = this.props.navigation?.addListener?.("focus", this.carregar);
     this.carregar();
   }
-  componentWillUnmount() { this._unsub?.(); }
+  componentWillUnmount() {
+    this._unsub?.();
+  }
 
   carregar = async () => {
     try {
@@ -69,6 +70,19 @@ export default class Home extends React.Component {
     }
   };
 
+  irParaLancamentos = () => {
+    const pode = !!this.props.navigation?.navigate;
+    if (pode) {
+      try {
+        this.props.navigation.navigate("Lancamentos");
+      } catch {
+        Alert.alert("Lançamentos", "Tela de lançamentos ainda não foi implementada.");
+      }
+    } else {
+      Alert.alert("Lançamentos", "Tela de lançamentos ainda não foi implementada.");
+    }
+  };
+
   formatarData = (iso) => {
     if (!iso) return "";
     const d = new Date(iso);
@@ -79,7 +93,6 @@ export default class Home extends React.Component {
   };
   getDiaDoMes = () => String(new Date().getDate()).padStart(2, "0");
 
-  
   Cabecalho = () => {
     const nome = this.props.route?.params?.userNome || "usuário";
     return (
@@ -87,18 +100,13 @@ export default class Home extends React.Component {
         <View style={estilos.cabecalho}>
           <View style={estilos.linhaCabecalho}>
             <View style={{ flex: 1 }}>
-              <Text style={[estilos.titulo, { paddingTop: 50 }]}>
-                Bem-vindo, {nome}
-              </Text>
+              <Text style={[estilos.titulo, { paddingTop: 50 }]}>Bem-vindo, {nome}</Text>
               <Text style={estilos.subtitulo}>Que livro você leu hoje?</Text>
             </View>
           </View>
-
           <View style={estilos.faixa}>
             <Text style={estilos.seloDia}>Dia {this.getDiaDoMes()}</Text>
           </View>
-
-    
           <View style={estilos.onda} />
           <Image source={arteHome} style={estilos.imagemCabecalho} />
         </View>
@@ -106,18 +114,15 @@ export default class Home extends React.Component {
     );
   };
 
-  
   CartaoVazio = () => (
     <View style={[estilos.cartao, estilos.cartaoVazio]}>
       <Text style={estilos.tituloCartao}>Tem algum livro que você está lendo?</Text>
       <Text style={estilos.subtituloCartao}>Adicione sua leitura atual</Text>
-
       <View style={estilos.fundoCruzes}>
         <MaterialCommunityIcons name="plus" size={12} color="#0ae0b2ff" />
         <MaterialCommunityIcons name="plus" size={40} color="#0ae0b2ff" />
         <MaterialCommunityIcons name="plus" size={28} color="#0ae0b2ff" />
       </View>
-
       <Pressable onPress={this.onAddPress} style={estilos.botaoPrimario}>
         <MaterialCommunityIcons name="plus" size={18} color={CORES.branco} />
         <Text style={estilos.textoBotaoPrimario}>Adicionar livro</Text>
@@ -132,7 +137,6 @@ export default class Home extends React.Component {
         <Text style={estilos.tituloLivro} numberOfLines={2}>
           {livro?.titulo || "Sem título"}
         </Text>
-
         <View style={estilos.linhaLivro}>
           <View style={estilos.capaContainer}>
             {livro?.capa ? (
@@ -143,56 +147,46 @@ export default class Home extends React.Component {
               </View>
             )}
           </View>
-
           <View style={{ flex: 1, paddingLeft: 14 }}>
-            {!!livro?.inicioEm && (
-              <Text style={estilos.metaLivro}>A partir de {this.formatarData(livro.inicioEm)}</Text>
-            )}
+            {!!livro?.inicioEm && <Text style={estilos.metaLivro}>A partir de {this.formatarData(livro.inicioEm)}</Text>}
             {!!livro?.autor && <Text style={estilos.autorLivro}>{livro.autor}</Text>}
-
             <View style={estilos.seloNota}>
               <MaterialCommunityIcons name="note-outline" size={16} color={CORES.textoSuave} />
               <Text style={estilos.textoSeloNota}>1 nota</Text>
             </View>
           </View>
         </View>
-
         <View style={estilos.grupoFlutuante}>
-          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="timer-outline" size={20} color={CORES.branco} /></Pressable>
-          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="note-text-outline" size={20} color={CORES.branco} /></Pressable>
-          <Pressable style={estilos.botaoFlutuante}><MaterialCommunityIcons name="plus" size={20} color={CORES.branco} /></Pressable>
+          <Pressable style={estilos.botaoFlutuante}>
+            <MaterialCommunityIcons name="timer-outline" size={20} color={CORES.branco} />
+          </Pressable>
+          <Pressable style={estilos.botaoFlutuante}>
+            <MaterialCommunityIcons name="note-text-outline" size={20} color={CORES.branco} />
+          </Pressable>
+          <Pressable style={estilos.botaoFlutuante}>
+            <MaterialCommunityIcons name="plus" size={20} color={CORES.branco} />
+          </Pressable>
         </View>
       </View>
     );
   };
 
- 
   CartaoListaDesejos = () => {
     const { listaDesejos } = this.state;
     const vazia = !listaDesejos || listaDesejos.length === 0;
-
     return (
       <View style={[estilos.cartao, estilos.cartaoListaDesejos]}>
         <View style={estilos.listaDesejosTopo}>
           <Text style={estilos.listaDesejosTitulo}>Lista de desejos</Text>
-
-          <Pressable
-            onPress={() => Alert.alert("Lista de desejos", "Adicionar item — em breve.")}
-            style={estilos.botaoFantasma}
-          >
+          <Pressable onPress={() => Alert.alert("Lista de desejos", "Adicionar item — em breve.")} style={estilos.botaoFantasma}>
             <MaterialCommunityIcons name="heart-plus" size={18} color={CORES.azul500} />
             <Text style={estilos.textoBotaoFantasma}>Adicionar</Text>
           </Pressable>
         </View>
-
         {vazia ? (
           <>
-            <Text style={estilos.listaDesejosMensagem}>
-              Sua lista de desejos está vazia no momento.
-            </Text>
-
+            <Text style={estilos.listaDesejosMensagem}>Sua lista de desejos está vazia no momento.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.listaDesejosLinha}>
-              
               <View style={[estilos.itemDesejo, estilos.itemDesejoPlaceholder]}>
                 <View style={estilos.capaDesejoPlaceholder}>
                   <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
@@ -200,8 +194,6 @@ export default class Home extends React.Component {
                 <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>Nome do livro</Text>
                 <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>Autor</Text>
               </View>
-
-           
               <View style={[estilos.itemDesejo, estilos.itemDesejoPlaceholder]}>
                 <View style={estilos.capaDesejoPlaceholder}>
                   <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
@@ -209,12 +201,7 @@ export default class Home extends React.Component {
                 <Text numberOfLines={1} style={estilos.tituloDesejoPlaceholder}>Nome do livro</Text>
                 <Text numberOfLines={1} style={estilos.autorDesejoPlaceholder}>Autor</Text>
               </View>
-
-            
-              <Pressable
-                onPress={() => Alert.alert("Lista de desejos", "Em breve você poderá adicionar um livro.")}
-                style={[estilos.itemDesejo, estilos.itemDesejoAdd]}
-              >
+              <Pressable onPress={() => Alert.alert("Lista de desejos", "Em breve você poderá adicionar um livro.")} style={[estilos.itemDesejo, estilos.itemDesejoAdd]}>
                 <MaterialCommunityIcons name="plus" size={26} color={CORES.textoSuave} />
                 <Text style={estilos.itemDesejoAddTxt}>Adicionar</Text>
               </Pressable>
@@ -241,25 +228,16 @@ export default class Home extends React.Component {
     );
   };
 
-  
   CartaoBiblioteca = () => {
     return (
       <View style={[estilos.cartao, estilos.cartaoBiblioteca]}>
         <Text style={estilos.bibliotecaTitulo}>Sua biblioteca</Text>
-
         <View style={estilos.bibliotecaBotoesLinha}>
-          <Pressable
-            onPress={() => this.irParaBiblioteca("favoritos")}
-            style={[estilos.chipBiblioteca, estilos.chipFavoritos]}
-          >
+          <Pressable onPress={() => this.irParaBiblioteca("favoritos")} style={[estilos.chipBiblioteca, estilos.chipFavoritos]}>
             <MaterialCommunityIcons name="heart" size={16} />
             <Text style={estilos.textoChipBiblioteca}>Favoritos</Text>
           </Pressable>
-
-          <Pressable
-            onPress={() => this.irParaBiblioteca("lidos")}
-            style={[estilos.chipBiblioteca, estilos.chipLidos]}
-          >
+          <Pressable onPress={() => this.irParaBiblioteca("lidos")} style={[estilos.chipBiblioteca, estilos.chipLidos]}>
             <MaterialCommunityIcons name="check-circle" size={16} />
             <Text style={estilos.textoChipBiblioteca}>Lidos</Text>
           </Pressable>
@@ -268,7 +246,86 @@ export default class Home extends React.Component {
     );
   };
 
-  
+  SecaoNovidades = () => {
+    const LANCAMENTOS = [
+      { id: "l1", titulo: "A Cidade de Bronze", data: "2025-10-18" },
+      { id: "l2", titulo: "O Problema dos 3 Corpos (edição comentada)", data: "2025-10-22" },
+      { id: "l3", titulo: "A Biblioteca da Meia-Noite", data: "2025-11-02" },
+    ];
+    const EM_ALTA = [
+      { id: "h1", titulo: "Torto Arado" },
+      { id: "h2", titulo: "É Assim que Acaba" },
+      { id: "h3", titulo: "Verity" },
+      { id: "h4", titulo: "O Homem de Giz" },
+    ];
+
+    return (
+      <View style={[estilos.cartao, estilos.cartaoNovidadesTexto]}>
+        <View style={estilos.linhaTituloNovidades}>
+          <MaterialCommunityIcons name="new-box" size={18} color={CORES.azul500} />
+          <Text style={estilos.novidadesTitulo}>Novidades</Text>
+        </View>
+
+        <View style={estilos.blocoNovidades}>
+          <View style={estilos.linhaBlocoTopo}>
+            <Text style={estilos.subtituloBloco}>Lançamentos</Text>
+            <Pressable onPress={this.irParaLancamentos} style={estilos.verTodosBotao}>
+              <Text style={estilos.verTodosTexto}>Ver todos</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={CORES.azul500} />
+            </Pressable>
+          </View>
+
+          <View style={estilos.listaTexto}>
+            {LANCAMENTOS.map((it) => (
+              <Pressable
+                key={it.id}
+                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                onPress={() => Alert.alert("Lançamento", `${it.titulo} — ${this.formatarData(it.data)}`)}
+                style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+              >
+                <View style={estilos.linhaLancamento}>
+                  <View style={estilos.pontoLista} />
+                  <Text style={estilos.itemLancamentoTitulo} numberOfLines={1}>
+                    {it.titulo}
+                  </Text>
+                  <View style={estilos.seloData}>
+                    <MaterialCommunityIcons name="calendar" size={12} color={CORES.azul500} />
+                    <Text style={estilos.textoSeloData}>{this.formatarData(it.data)}</Text>
+                  </View>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={estilos.divisorNovidades} />
+
+        <View style={estilos.blocoNovidades}>
+          <Text style={estilos.subtituloBloco}>Em alta</Text>
+          <View style={estilos.listaTexto}>
+            {EM_ALTA.map((it, idx) => (
+              <Pressable
+                key={it.id}
+                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                onPress={() => Alert.alert("Em alta", `${idx + 1}. ${it.titulo}`)}
+                style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+              >
+                <View style={estilos.linhaAlta}>
+                  <View style={estilos.seloNumero}>
+                    <Text style={estilos.textoSeloNumero}>{idx + 1}</Text>
+                  </View>
+                  <Text style={estilos.itemAltaTitulo} numberOfLines={1}>
+                    {it.titulo}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   PilulaInfo = () => (
     <View style={estilos.pilulaInfo}>
       <Text style={estilos.textoPilulaInfo}>Você está lendo um livro.</Text>
@@ -280,15 +337,12 @@ export default class Home extends React.Component {
 
   render() {
     const { carregando, livro } = this.state;
-
     return (
       <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
-     
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
               <this.Cabecalho />
-
               {carregando ? (
                 <Text style={{ color: CORES.textoSuave, marginTop: 14 }}>Carregando...</Text>
               ) : livro ? (
@@ -304,14 +358,12 @@ export default class Home extends React.Component {
                   <this.PilulaInfo />
                 </>
               )}
-
-              
-              <View style={{ height: 8 }} />
+              <View style={{ height: 12 }} />
               <this.CartaoListaDesejos />
-
-              <View style={{ height: 10 }} />
+              <View style={{ height: 14 }} />
               <this.CartaoBiblioteca />
-
+              <View style={{ height: 16 }} />
+              <this.SecaoNovidades />
               <View style={{ height: 28 }} />
             </ScrollView>
           </KeyboardAvoidingView>
@@ -330,8 +382,6 @@ const estilos = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
   },
-
-
   cabecalhoWrap: { width: "100%", alignItems: "center", marginTop: 0 },
   cabecalho: {
     width: "110%",
@@ -376,11 +426,9 @@ const estilos = StyleSheet.create({
     resizeMode: "contain",
     zIndex: 2,
   },
-
-  
   cartao: {
     width: "100%",
-    marginTop: 22, 
+    marginTop: 22,
     maxWidth: LARGURA_MAX,
     backgroundColor: CORES.branco,
     borderWidth: 1,
@@ -389,18 +437,15 @@ const estilos = StyleSheet.create({
     padding: 18,
     alignSelf: "center",
     shadowColor: CORES.sombra,
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 12 },
     elevation: 4,
   },
-
-  
   cartaoVazio: { alignItems: "flex-start", overflow: "hidden" },
   tituloCartao: { color: CORES.texto, fontSize: 22, fontWeight: "800", marginBottom: 6 },
   subtituloCartao: { color: CORES.textoSuave, marginBottom: 18 },
   fundoCruzes: { position: "absolute", right: 24, bottom: 18, opacity: 0.45, gap: 8 },
-
   botaoPrimario: {
     backgroundColor: CORES.azul500,
     borderRadius: 16,
@@ -411,8 +456,6 @@ const estilos = StyleSheet.create({
     gap: 8,
   },
   textoBotaoPrimario: { color: CORES.branco, fontWeight: "800" },
-
-  
   cartaoLivro: {},
   tituloLivro: { color: CORES.texto, fontSize: 20, fontWeight: "800", marginBottom: 10 },
   linhaLivro: { flexDirection: "row", alignItems: "center" },
@@ -435,12 +478,17 @@ const estilos = StyleSheet.create({
   textoSeloNota: { color: CORES.textoSuave },
   grupoFlutuante: {
     position: "absolute",
-    right: 16, bottom: 16,
-    flexDirection: "row", gap: 10,
+    right: 16,
+    bottom: 16,
+    flexDirection: "row",
+    gap: 10,
   },
   botaoFlutuante: {
-    width: 48, height: 48, borderRadius: 18,
-    alignItems: "center", justifyContent: "center",
+    width: 48,
+    height: 48,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: CORES.azul500,
     elevation: 3,
     shadowColor: CORES.sombra,
@@ -448,8 +496,6 @@ const estilos = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 6 },
   },
-
-  
   pilulaInfo: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -471,16 +517,14 @@ const estilos = StyleSheet.create({
   },
   textoPilulaInfo: { color: CORES.texto, fontSize: 16 },
   avatarInfo: {
-    width: 36, height: 36, borderRadius: 999,
+    width: 36,
+    height: 36,
+    borderRadius: 999,
     backgroundColor: CORES.azul500,
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
-
- 
-  cartaoListaDesejos: {
-    marginTop: 14,    
-    marginBottom: 10, 
-  },
+  cartaoListaDesejos: { marginTop: 14, marginBottom: 10 },
   listaDesejosTopo: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   listaDesejosTitulo: { color: CORES.texto, fontSize: 20, fontWeight: "800" },
   listaDesejosMensagem: { color: CORES.textoSuave, marginBottom: 6 },
@@ -510,8 +554,13 @@ const estilos = StyleSheet.create({
   },
   itemDesejoPlaceholder: { alignItems: "flex-start", justifyContent: "flex-start" },
   capaDesejoPlaceholder: {
-    width: "100%", height: 150, borderRadius: 10, marginBottom: 8,
-    backgroundColor: "#F1F2F4", alignItems: "center", justifyContent: "center",
+    width: "100%",
+    height: 150,
+    borderRadius: 10,
+    marginBottom: 8,
+    backgroundColor: "#F1F2F4",
+    alignItems: "center",
+    justifyContent: "center",
   },
   tituloDesejoPlaceholder: { color: CORES.azul300, fontWeight: "700" },
   autorDesejoPlaceholder: { color: CORES.azul300, fontSize: 12, marginTop: 2 },
@@ -520,17 +569,15 @@ const estilos = StyleSheet.create({
   autorDesejo: { color: CORES.textoSuave, fontSize: 12, marginTop: 2 },
   itemDesejoAdd: { alignItems: "center", justifyContent: "center", gap: 8 },
   itemDesejoAddTxt: { color: CORES.textoSuave, fontWeight: "700" },
-
-  
   cartaoBiblioteca: {
     paddingVertical: 14,
-    marginTop: 12, 
+    marginTop: 12,
   },
   bibliotecaTitulo: {
     color: CORES.texto,
     fontSize: 18,
     fontWeight: "800",
-    marginBottom: 10, 
+    marginBottom: 10,
   },
   bibliotecaBotoesLinha: {
     flexDirection: "row",
@@ -548,10 +595,95 @@ const estilos = StyleSheet.create({
     borderWidth: 1,
     borderColor: CORES.borda,
   },
-  textoChipBiblioteca: {
-    color: CORES.azul500,
-    fontWeight: "800",
-  },
+  textoChipBiblioteca: { color: CORES.azul500, fontWeight: "800" },
   chipFavoritos: {},
   chipLidos: {},
+
+ 
+  cartaoNovidadesTexto: {
+    marginTop: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "rgba(3,139,137,0.35)",
+  },
+  linhaTituloNovidades: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,          
+  },
+  novidadesTitulo: { color: CORES.texto, fontSize: 20, fontWeight: "800" },
+  blocoNovidades: {
+    marginTop: 12,              
+  },
+  linhaBlocoTopo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,         
+  },
+  subtituloBloco: {
+    color: CORES.texto,
+    fontSize: 16,
+    fontWeight: "800",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(3,139,137,0.08)",
+    borderRadius: 8,
+  },
+  verTodosBotao: { flexDirection: "row", alignItems: "center", gap: 4 },
+  verTodosTexto: { color: CORES.azul500, fontWeight: "900" },
+  listaTexto: {
+    gap: 10,                   
+  },
+  linhaLancamento: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 8,         
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  pontoLista: { width: 8, height: 8, borderRadius: 999, backgroundColor: CORES.azul500 },
+  itemLancamentoTitulo: { flex: 1, color: CORES.textoSuave, fontSize: 14, fontWeight: "600" },
+  seloData: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(3,139,137,0.10)",
+    borderWidth: 1,
+    borderColor: CORES.borda,
+  },
+  textoSeloData: { color: CORES.azul500, fontWeight: "800", fontSize: 12 },
+  divisorNovidades: {
+    height: 1,
+    backgroundColor: CORES.borda,
+    marginTop: 18,           
+    marginBottom: 12,
+  },
+  linhaAlta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 8,        
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  seloNumero: {
+    width: 24,
+    height: 24,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(3,139,137,0.10)",
+    borderWidth: 1,
+    borderColor: CORES.borda,
+  },
+  textoSeloNumero: { color: CORES.azul500, fontWeight: "900", fontSize: 12 },
+  itemAltaTitulo: { flex: 1, color: CORES.textoSuave, fontSize: 14, fontWeight: "600" },
 });
