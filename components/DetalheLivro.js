@@ -29,14 +29,16 @@ const CORES = {
   textoSuave: "#58627A",
   branco: "#ffffff",
   borda: "#E6E3DF",
-  cinza: "#302f2fff", 
+  cinza: "#302f2fff",
   sombra: "#000000",
 };
 
+// === KEYS (alinhadas com Home.js) ===
 const KEY_LISTA = "@readon:lista_desejos";
 const KEY_AVALIACOES = (id) => `@readon:avaliacoes:${id}`;
-const KEY_LEITURA_ATUAL = "@readon:leitura_atual";
-const KEY_CURRENT_BOOK = "@readon:current_book"; 
+const KEY_LEITURA_ATUAL = "@readon:leitura_atual"; // ainda salva por compat, se quiser usar noutros lugares
+const KEY_CURRENT_BOOK = "@readon:current_book"; // legado (único)
+const KEY_CURRENT_BOOKS = "@readon:current_books"; // lista (novo)
 
 const ADAPTACOES = {
   "jogos-vorazes": {
@@ -61,19 +63,45 @@ function Stars({ value = 0, size = 18 }) {
 
   const children = [];
   for (let i = 0; i < full; i++) {
-    children.push(h(MaterialCommunityIcons, { key: "f" + i, name: "star", size, color: "#f5c518" }));
+    children.push(
+      h(MaterialCommunityIcons, {
+        key: "f" + i,
+        name: "star",
+        size,
+        color: "#f5c518",
+      })
+    );
   }
-  if (half) children.push(h(MaterialCommunityIcons, { key: "half", name: "star-half-full", size, color: "#f5c518" }));
+  if (half)
+    children.push(
+      h(MaterialCommunityIcons, {
+        key: "half",
+        name: "star-half-full",
+        size,
+        color: "#f5c518",
+      })
+    );
   for (let i = 0; i < empty; i++) {
-    children.push(h(MaterialCommunityIcons, { key: "e" + i, name: "star-outline", size, color: "#f5c518" }));
+    children.push(
+      h(MaterialCommunityIcons, {
+        key: "e" + i,
+        name: "star-outline",
+        size,
+        color: "#f5c518",
+      })
+    );
   }
-  return h(View, { style: { flexDirection: "row", alignItems: "center", gap: 2 } }, children);
+  return h(
+    View,
+    { style: { flexDirection: "row", alignItems: "center", gap: 2 } },
+    children
+  );
 }
 
 export default class DetalheLivro extends React.Component {
   state = {
     emLista: false,
-    avaliacoes: [], 
+    avaliacoes: [],
     notaMedia: 0,
     modalAvaliar: false,
     notaTemp: "5",
@@ -91,7 +119,8 @@ export default class DetalheLivro extends React.Component {
     const listaRaw = (await AsyncStorage.getItem(KEY_LISTA)) || "[]";
     const lista = JSON.parse(listaRaw);
 
-    const avRaw = (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
+    const avRaw =
+      (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
     const avaliacoes = JSON.parse(avRaw);
 
     this.setState(
@@ -118,18 +147,54 @@ export default class DetalheLivro extends React.Component {
     this.setState({ emLista: lista.includes(livro.id) });
   };
 
+  // === helper capa para salvar compatível com Home ===
+  _extrairCapaPayload = (capa) => {
+    // Se for require(...) (number), salva em "capaLocal"
+    if (typeof capa !== "string") {
+      return { capaLocal: capa, capaUri: null, capa: null };
+    }
+    // Se for string (URL/local path), salva em "capaUri"
+    return { capaLocal: null, capaUri: capa, capa: capa };
+  };
+
   setLeituraAtual = async () => {
     const livro = this.props.route?.params?.livro;
+    if (!livro?.id) return;
+
+    const { capaLocal, capaUri, capa } = this._extrairCapaPayload(livro.capa);
+
     const payload = {
       id: livro.id,
       titulo: livro.titulo,
       autor: livro.autor || "",
-      capa: typeof livro.capa === "string" ? livro.capa : (livro.capa?.uri ? livro.capa.uri : null),
-      inicioEm: new Date().toISOString(), 
+      // Mantemos "capa" (string) para retrocompat, e adicionamos campos
+      capa: capa || null,
+      capaUri: capaUri, // string
+      capaLocal: capaLocal, // require(...) number
+      inicioEm: new Date().toISOString(),
       progresso: 0,
     };
+
+    // 1) Atualiza o legado único
     await AsyncStorage.setItem(KEY_LEITURA_ATUAL, JSON.stringify(payload));
     await AsyncStorage.setItem(KEY_CURRENT_BOOK, JSON.stringify(payload));
+
+    // 2) Atualiza a lista de leituras atuais (KEY_CURRENT_BOOKS) movendo para o topo
+    const arrRaw = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
+    let arr = [];
+    try {
+      arr = JSON.parse(arrRaw);
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    // remove se já existe
+    arr = arr.filter((b) => b && b.id !== livro.id);
+    // adiciona no topo
+    arr.unshift(payload);
+    await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(arr));
+
     Alert.alert("Leitura atual", "Este livro foi definido como sua leitura atual.");
   };
 
@@ -151,13 +216,19 @@ export default class DetalheLivro extends React.Component {
     };
     const atual = [...this.state.avaliacoes, novo];
     await AsyncStorage.setItem(KEY_AVALIACOES(livro.id), JSON.stringify(atual));
-    this.setState({ avaliacoes: atual, modalAvaliar: false }, this.recalcularMedia);
+    this.setState(
+      { avaliacoes: atual, modalAvaliar: false },
+      this.recalcularMedia
+    );
   };
 
   recalcularMedia = () => {
     const { avaliacoes } = this.state;
     if (!avaliacoes.length) return this.setState({ notaMedia: 0 });
-    const soma = avaliacoes.reduce((acc, it) => acc + Number(it.nota || 0), 0);
+    const soma = avaliacoes.reduce(
+      (acc, it) => acc + Number(it.nota || 0),
+      0
+    );
     this.setState({ notaMedia: soma / avaliacoes.length });
   };
 
@@ -169,7 +240,10 @@ export default class DetalheLivro extends React.Component {
       {
         onPress: () => {
           const locais = (info.ondeVer || []).join(" · ");
-          Alert.alert("Adaptação", `${info.titulo}\n\nOnde ver: ${locais || "—"}`);
+          Alert.alert(
+            "Adaptação",
+            `${info.titulo}\n\nOnde ver: ${locais || "—"}`
+          );
         },
         style: [estilos.botaoAdaptacaoDark],
       },
@@ -183,7 +257,13 @@ export default class DetalheLivro extends React.Component {
       { style: estilos.itemAvaliacao },
       h(
         View,
-        { style: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" } },
+        {
+          style: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          },
+        },
         h(Text, { style: estilos.avAutor }, item.usuario),
         h(Stars, { value: item.nota, size: 16 })
       ),
@@ -193,9 +273,15 @@ export default class DetalheLivro extends React.Component {
 
   render() {
     const livro = this.props.route?.params?.livro;
-    const { emLista, notaMedia, avaliacoes, modalAvaliar, notaTemp, comentarioTemp } = this.state;
+    const {
+      emLista,
+      notaMedia,
+      avaliacoes,
+      modalAvaliar,
+      notaTemp,
+      comentarioTemp,
+    } = this.state;
     if (!livro) return null;
-
 
     const header = h(
       View,
@@ -205,13 +291,27 @@ export default class DetalheLivro extends React.Component {
         { style: estilos.capaWrap },
         livro.capa
           ? h(Image, {
-              source: typeof livro.capa === "string" ? { uri: livro.capa } : livro.capa,
+              source:
+                typeof livro.capa === "string" ? { uri: livro.capa } : livro.capa,
               style: estilos.capa,
             })
           : h(
               View,
-              { style: [estilos.capa, { alignItems: "center", justifyContent: "center", backgroundColor: "#F1F2F4" }] },
-              h(MaterialCommunityIcons, { name: "book-open-page-variant", size: 48, color: CORES.azul300 })
+              {
+                style: [
+                  estilos.capa,
+                  {
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#F1F2F4",
+                  },
+                ],
+              },
+              h(MaterialCommunityIcons, {
+                name: "book-open-page-variant",
+                size: 48,
+                color: CORES.azul300,
+              })
             )
       ),
       h(
@@ -223,11 +323,16 @@ export default class DetalheLivro extends React.Component {
           View,
           { style: estilos.notaLinha },
           h(Stars, { value: notaMedia }),
-          h(Text, { style: estilos.notaTexto }, avaliacoes.length ? `${notaMedia.toFixed(1)} (${avaliacoes.length})` : "Sem avaliações")
+          h(
+            Text,
+            { style: estilos.notaTexto },
+            avaliacoes.length
+              ? `${notaMedia.toFixed(1)} (${avaliacoes.length})`
+              : "Sem avaliações"
+          )
         )
       )
     );
-
 
     const sinopseBox = livro.sinopse
       ? h(
@@ -255,21 +360,30 @@ export default class DetalheLivro extends React.Component {
         : h(Text, { style: estilos.vazio }, "Ainda não há avaliações.")
     );
 
-
+    // Botão principal: Adicionar leitura atual
     const botaoLeituraAtual = h(
       Pressable,
       { onPress: this.setLeituraAtual, style: estilos.botaoGrandePrim },
-      h(MaterialCommunityIcons, { name: "book-open-outline", size: 20, color: CORES.branco }),
+      h(MaterialCommunityIcons, {
+        name: "book-open-outline",
+        size: 20,
+        color: CORES.branco,
+      }),
       h(Text, { style: estilos.textoBotaoGrandePrim }, "Adicione leitura atual")
     );
 
+    // Ações quadrados: Avaliar + Lista
     const acoesQuadradosBottom = h(
       View,
       { style: estilos.quadradosRow },
       h(
         Pressable,
         { onPress: this.abrirModalAvaliar, style: estilos.quadradoPrim },
-        h(MaterialCommunityIcons, { name: "star-plus-outline", size: 26, color: CORES.branco }),
+        h(MaterialCommunityIcons, {
+          name: "star-plus-outline",
+          size: 26,
+          color: CORES.branco,
+        }),
         h(Text, { style: estilos.quadradoPrimTxt }, "Avaliar")
       ),
       h(
@@ -280,10 +394,13 @@ export default class DetalheLivro extends React.Component {
           size: 26,
           color: CORES.azul500,
         }),
-        h(Text, { style: estilos.quadradoSecTxt }, emLista ? "Na lista" : "Adicionar à lista")
+        h(
+          Text,
+          { style: estilos.quadradoSecTxt },
+          emLista ? "Na lista" : "Adicionar à lista"
+        )
       )
     );
-
 
     const modal = h(
       Modal,
@@ -321,18 +438,34 @@ export default class DetalheLivro extends React.Component {
           ),
           h(
             View,
-            { style: { flexDirection: "row", justifyContent: "flex-end", gap: 10 } },
-            h(Pressable, { onPress: this.fecharModalAvaliar, style: estilos.botaoLinha }, h(Text, { style: estilos.botaoLinhaTxt }, "Cancelar")),
+            {
+              style: {
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 10,
+              },
+            },
             h(
               Pressable,
-              { onPress: this.salvarAvaliacao, style: [estilos.botaoLinha, estilos.botaoLinhaPrim] },
-              h(Text, { style: [estilos.botaoLinhaTxt, { color: CORES.branco }] }, "Salvar")
+              { onPress: this.fecharModalAvaliar, style: estilos.botaoLinha },
+              h(Text, { style: estilos.botaoLinhaTxt }, "Cancelar")
+            ),
+            h(
+              Pressable,
+              {
+                onPress: this.salvarAvaliacao,
+                style: [estilos.botaoLinha, estilos.botaoLinhaPrim],
+              },
+              h(
+                Text,
+                { style: [estilos.botaoLinhaTxt, { color: CORES.branco }] },
+                "Salvar"
+              )
             )
           )
         )
       )
     );
-
 
     return h(
       LinearGradient,
@@ -342,7 +475,10 @@ export default class DetalheLivro extends React.Component {
         { style: { flex: 1 }, edges: ["bottom"] },
         h(
           KeyboardAvoidingView,
-          { behavior: Platform.OS === "ios" ? "padding" : undefined, style: { flex: 1 } },
+          {
+            behavior: Platform.OS === "ios" ? "padding" : undefined,
+            style: { flex: 1 },
+          },
           h(
             ScrollView,
             { contentContainerStyle: estilos.conteudo },
@@ -388,7 +524,13 @@ const estilos = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
-  capaWrap: { width: 110, height: 160, borderRadius: 12, overflow: "hidden", backgroundColor: "#F1F2F4" },
+  capaWrap: {
+    width: 110,
+    height: 160,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#F1F2F4",
+  },
   capa: { width: "100%", height: "100%", resizeMode: "cover" },
   titulo: { color: CORES.texto, fontSize: 20, fontWeight: "800" },
   autor: { color: CORES.textoSuave, marginTop: 4 },
@@ -412,7 +554,6 @@ const estilos = StyleSheet.create({
   },
   secaoTitulo: { color: CORES.texto, fontSize: 16, fontWeight: "800", marginBottom: 8 },
   sinopse: { color: CORES.textoSuave, lineHeight: 20 },
-
 
   botaoGrandePrim: {
     width: "100%",
@@ -439,7 +580,6 @@ const estilos = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  
   quadradosRow: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -449,7 +589,7 @@ const estilos = StyleSheet.create({
   },
   quadradoPrim: {
     flex: 1,
-    height: 100, 
+    height: 100,
     backgroundColor: CORES.azul500,
     borderRadius: 18,
     alignItems: "center",
@@ -465,7 +605,7 @@ const estilos = StyleSheet.create({
 
   quadradoSec: {
     flex: 1,
-    height: 100, 
+    height: 100,
     backgroundColor: "rgba(3,139,137,0.10)",
     borderWidth: 2,
     borderColor: CORES.azul500,
@@ -476,7 +616,6 @@ const estilos = StyleSheet.create({
   },
   quadradoSecTxt: { color: CORES.azul500, fontWeight: "900", fontSize: 15 },
 
-  
   botaoAdaptacaoDark: {
     marginTop: 10,
     flexDirection: "row",
@@ -492,7 +631,6 @@ const estilos = StyleSheet.create({
   },
   textoBotaoAdaptacaoDark: { color: CORES.branco, fontWeight: "900" },
 
-  
   itemAvaliacao: {
     borderWidth: 1,
     borderColor: CORES.borda,
@@ -503,7 +641,6 @@ const estilos = StyleSheet.create({
   avTexto: { color: CORES.textoSuave, marginTop: 4 },
   avQuando: { color: CORES.azul300, marginTop: 6, fontSize: 12 },
 
- 
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
