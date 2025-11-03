@@ -16,17 +16,17 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="dark" translucent />
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-
         <Stack.Screen name="Login" component={Login} />
-
         <Stack.Screen name="Cadastro" component={Cadastro} />
-
         <Stack.Screen name="Home" component={Home} />
 
-        <Stack.Screen name="AdicionarLivro" component={AdicionarLivro} />
-        
-        <Stack.Screen name="DetalheLivro" component={DetalheLivro} />
+        <Stack.Screen
+          name="AdicionarLivro"
+          component={AdicionarLivro}
+          options={{ headerShown: false }}
+        />
 
+        <Stack.Screen name="DetalheLivro" component={DetalheLivro} />
       </Stack.Navigator>
     </NavigationContainer>
   );

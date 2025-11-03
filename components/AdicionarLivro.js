@@ -154,19 +154,35 @@ export default class AdicionarLivro extends React.Component {
     <Pressable onPress={() => this.abrirDetalhe(item)} style={estilos.item}>
       <Image source={item.capa} style={estilos.itemCapa} />
       <View style={{ flex: 1 }}>
-        <Text style={estilos.itemTitulo} numberOfLines={1}>{item.titulo}</Text>
-        <Text style={estilos.itemAutor} numberOfLines={1}>{item.autor}</Text>
+        <Text style={estilos.itemTitulo} numberOfLines={1}>
+          {item.titulo}
+        </Text>
+        <Text style={estilos.itemAutor} numberOfLines={1}>
+          {item.autor}
+        </Text>
 
         <View style={estilos.linhaChips}>
           <View style={estilos.chipGenero}>
-            <MaterialCommunityIcons name="tag-outline" size={12} color={CORES.azul500} />
-            <Text style={estilos.chipGeneroTxt} numberOfLines={1}>{item.genero}</Text>
+            <MaterialCommunityIcons
+              name="tag-outline"
+              size={12}
+              color={CORES.azul500}
+            />
+            <Text style={estilos.chipGeneroTxt} numberOfLines={1}>
+              {item.genero}
+            </Text>
           </View>
         </View>
 
-        <Text style={estilos.itemSinopse} numberOfLines={2}>{item.sinopse}</Text>
+        <Text style={estilos.itemSinopse} numberOfLines={2}>
+          {item.sinopse}
+        </Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={22} color={CORES.textoSuave} />
+      <MaterialCommunityIcons
+        name="chevron-right"
+        size={22}
+        color={CORES.textoSuave}
+      />
     </Pressable>
   );
 
@@ -174,14 +190,37 @@ export default class AdicionarLivro extends React.Component {
     const dados = this.filtrar();
 
     return (
-      <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
+      <LinearGradient
+        colors={[CORES.gradientStart, CORES.gradientEnd]}
+        style={{ flex: 1 }}
+      >
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1 }}
+          >
             <View style={estilos.conteudo}>
+      
+              <Pressable
+                style={estilos.botaoVoltar}
+                onPress={() => this.props.navigation.navigate("Home")}
+              >
+                <MaterialCommunityIcons
+                  name="arrow-left"
+                  size={22}
+                  color={CORES.azul500}
+                />
+                <Text style={estilos.txtVoltar}>Voltar</Text>
+              </Pressable>
+
               <Text style={estilos.tituloPagina}>Adicionar livro</Text>
 
               <View style={estilos.campoBuscaWrap}>
-                <MaterialCommunityIcons name="magnify" size={20} color={CORES.textoSuave} />
+                <MaterialCommunityIcons
+                  name="magnify"
+                  size={20}
+                  color={CORES.textoSuave}
+                />
                 <TextInput
                   style={estilos.campoBusca}
                   placeholder="Buscar por título, autor ou gênero"
@@ -192,8 +231,15 @@ export default class AdicionarLivro extends React.Component {
                   autoCapitalize="none"
                 />
                 {this.state.busca.length > 0 && (
-                  <Pressable onPress={() => this.setState({ busca: "" })} hitSlop={12}>
-                    <MaterialCommunityIcons name="close-circle" size={18} color={CORES.azul300} />
+                  <Pressable
+                    onPress={() => this.setState({ busca: "" })}
+                    hitSlop={12}
+                  >
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={18}
+                      color={CORES.azul300}
+                    />
                   </Pressable>
                 )}
               </View>
@@ -224,12 +270,24 @@ const estilos = StyleSheet.create({
     width: "100%",
     maxWidth: LARGURA_MAX,
   },
+  botaoVoltar: {
+    flexDirection: "row",     
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-end",    
+    marginTop: 35,
+  },
+  txtVoltar: {
+    color: CORES.azul500,
+    fontSize: 15,
+    fontWeight: "700",
+  },
   tituloPagina: {
     color: CORES.texto,
     fontSize: 22,
     fontWeight: "800",
     marginBottom: 12,
-    paddingTop: 44,
+    paddingTop: 6,
   },
   campoBuscaWrap: {
     flexDirection: "row",
@@ -249,7 +307,6 @@ const estilos = StyleSheet.create({
     elevation: 2,
   },
   campoBusca: { flex: 1, color: CORES.texto, fontSize: 14 },
-
   item: {
     flexDirection: "row",
     gap: 12,
@@ -274,7 +331,6 @@ const estilos = StyleSheet.create({
   },
   itemTitulo: { color: CORES.texto, fontWeight: "800", fontSize: 15 },
   itemAutor: { color: CORES.textoSuave, marginTop: 2, marginBottom: 6 },
-
   linhaChips: { flexDirection: "row", gap: 8, marginBottom: 6 },
   chipGenero: {
     flexDirection: "row",
@@ -289,6 +345,5 @@ const estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
   chipGeneroTxt: { color: CORES.azul500, fontWeight: "800", fontSize: 12 },
-
   itemSinopse: { color: CORES.textoSuave, fontSize: 12 },
 });
