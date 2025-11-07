@@ -106,6 +106,7 @@ function Stars({ value = 0, size = 18 }) {
   );
 }
 
+
 export default class DetalheLivro extends React.Component {
   state = {
     emLista: false,
@@ -114,18 +115,38 @@ export default class DetalheLivro extends React.Component {
   };
 
   componentDidMount() {
+    this._off = this.props.navigation?.addListener?.("focus", this.carregar);
     this.carregar();
   }
+  componentWillUnmount() {
+    this._off?.();
+  }
+
+  lerJSON = (raw, fallback) => {
+    try {
+      const v = JSON.parse(raw);
+      return v ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
 
   carregar = async () => {
     const livro = this.props.route?.params?.livro;
     if (!livro?.id) return;
 
     const listaRaw = (await AsyncStorage.getItem(KEY_LISTA)) || "[]";
-    const lista = JSON.parse(listaRaw);
+    const lista = this.lerJSON(listaRaw, []);
 
     const avRaw = (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
-    const avaliacoes = JSON.parse(avRaw);
+    let avaliacoes = this.lerJSON(avRaw, []);
+
+   
+    avaliacoes.sort((a, b) => {
+      const da = new Date(a?.data || 0).getTime();
+      const db = new Date(b?.data || 0).getTime();
+      return db - da;
+    });
 
     this.setState(
       {
@@ -170,25 +191,13 @@ export default class DetalheLivro extends React.Component {
     await AsyncStorage.setItem(KEY_CURRENT_BOOK, JSON.stringify(payload));
 
     const arrRaw = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
-    let arr = [];
-    try {
-      arr = JSON.parse(arrRaw);
-      if (!Array.isArray(arr)) arr = [];
-    } catch {
-      arr = [];
-    }
+    let arr = this.lerJSON(arrRaw, []);
     arr = arr.filter((b) => b && b.id !== livro.id);
     arr.unshift(payload);
     await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(arr));
 
     const lidosRaw = (await AsyncStorage.getItem(KEY_LIDOS)) || "[]";
-    let lidos = [];
-    try {
-      lidos = JSON.parse(lidosRaw);
-      if (!Array.isArray(lidos)) lidos = [];
-    } catch {
-      lidos = [];
-    }
+    let lidos = this.lerJSON(lidosRaw, []);
     const jaTem = lidos.some((b) => b && b.id === livro.id);
     if (!jaTem) {
       lidos.unshift({
@@ -234,7 +243,9 @@ export default class DetalheLivro extends React.Component {
         <Stars value={item.nota} size={16} />
       </View>
       {item.comentario ? <Text style={estilos.avTexto}>{item.comentario}</Text> : null}
-      <Text style={estilos.avQuando}>{new Date(item.data).toLocaleDateString()}</Text>
+      <Text style={estilos.avQuando}>
+        {item.data ? new Date(item.data).toLocaleDateString() : ""}
+      </Text>
     </View>
   );
 
@@ -255,7 +266,7 @@ export default class DetalheLivro extends React.Component {
             <ScrollView contentContainerStyle={estilos.conteudo}>
               <Pressable
                 style={estilos.botaoVoltar}
-                onPress={() => this.props.navigation?.navigate("AdicionarLivro")}
+                onPress={() => this.props.navigation?.goBack?.()}
               >
                 <MaterialCommunityIcons name="arrow-left" size={20} color={CORES.azul500} />
                 <Text style={estilos.txtVoltar}>Voltar</Text>
