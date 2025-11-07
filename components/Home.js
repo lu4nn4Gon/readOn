@@ -15,8 +15,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const CHAVE_LIVRO_ATUAL_LEGADO = "@readon:current_book";    
-const CHAVE_LIVROS_ATUAIS = "@readon:current_books";        
+const SESSION_KEY = "@readon:session";
+const keyUser = (uid, name) => `@readon:${name}:${uid}`;
 
 const arteHome = require("../assets/home.png");
 
@@ -31,10 +31,8 @@ const CORES = {
   borda: "#E6E3DF",
   cinza: "#302f2fff",
   sombra: "#000000",
-
   lidoBorda: "#16a34a",
   desistidoBorda: "#dc2626",
-
   lendoFundo: "rgba(3,139,137,0.10)",
   lendoBorda: "rgba(3,139,137,0.30)",
   lendoTexto: "#026160ff",
@@ -42,11 +40,24 @@ const CORES = {
 
 const LARGURA_MAXIMA = 520;
 
+async function getSession() {
+  try {
+    const raw = await AsyncStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    const uid = s?.email || s?.username || null;
+    return uid ? { uid, nome: s?.nome || "usuário" } : null;
+  } catch {
+    return null;
+  }
+}
+
 export default class Home extends React.Component {
   state = {
     carregando: true,
-    livros: [],        
-    listaDesejos: [], 
+    livros: [],
+    listaDesejos: [],
+    userNome: "usuário",
   };
 
   componentDidMount() {
@@ -59,7 +70,7 @@ export default class Home extends React.Component {
 
   resolverFonteCapa = (capa) => {
     if (!capa) return null;
-    if (typeof capa === "number") return capa; 
+    if (typeof capa === "number") return capa;
     if (typeof capa === "string") return { uri: capa };
     if (capa?.uri) return { uri: capa.uri };
     return null;
@@ -78,8 +89,14 @@ export default class Home extends React.Component {
 
   carregar = async () => {
     try {
-    
-      const listaRaw = (await AsyncStorage.getItem(CHAVE_LIVROS_ATUAIS)) || "[]";
+      const s = await getSession();
+      const uid = s?.uid || "__anon__";
+      const userNome = this.props.route?.params?.userNome || s?.nome || "usuário";
+
+      const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book");
+
+      const listaRaw = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
       let lista = [];
       try {
         lista = JSON.parse(listaRaw);
@@ -88,8 +105,7 @@ export default class Home extends React.Component {
         lista = [];
       }
 
-     
-      const legadoRaw = await AsyncStorage.getItem(CHAVE_LIVRO_ATUAL_LEGADO);
+      const legadoRaw = await AsyncStorage.getItem(KEY_CURRENT_BOOK);
       if (legadoRaw) {
         const legado = JSON.parse(legadoRaw);
         if (legado?.id) {
@@ -97,7 +113,6 @@ export default class Home extends React.Component {
         }
       }
 
-    
       const livros = lista.filter(Boolean).map((b) => ({
         id: b.id,
         titulo: b.titulo || "Sem título",
@@ -110,22 +125,20 @@ export default class Home extends React.Component {
         progresso: typeof b.progresso === "number" ? b.progresso : 0,
       }));
 
-   
-      const listaDesejos = []; 
+      const listaDesejos = [];
 
-      this.setState({ livros, listaDesejos, carregando: false });
+      this.setState({ livros, listaDesejos, carregando: false, userNome });
     } catch {
       this.setState({ livros: [], listaDesejos: [], carregando: false });
     }
   };
 
   sair = () => {
-  this.props.navigation?.reset?.({
-    index: 0,
-    routes: [{ name: "Login" }],
-  });
+    this.props.navigation?.reset?.({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
   };
-
 
   aoPressionarAdicionar = () => {
     const podeNavegar = !!this.props.navigation?.navigate;
@@ -166,10 +179,8 @@ export default class Home extends React.Component {
     }
   };
 
- 
-
   Cabecalho = () => {
-    const nome = this.props.route?.params?.userNome || "usuário";
+    const nome = this.state.userNome || "usuário";
     return (
       <View style={estilos.cabecalhoContainer}>
         <View style={estilos.cabecalho}>
@@ -244,7 +255,6 @@ export default class Home extends React.Component {
           )}
 
           <View style={estilos.livroLinha}>
-            {/* Capa */}
             <View style={estilos.capaContainer}>
               <View style={estilos.capaBorda}>
                 {fonteCapa ? (
@@ -261,7 +271,6 @@ export default class Home extends React.Component {
               </View>
             </View>
 
-          
             <View style={estilos.infoColuna}>
               {!!livro?.genero && (
                 <View style={estilos.chipLinha}>
@@ -277,7 +286,6 @@ export default class Home extends React.Component {
               )}
             </View>
 
-        
             <View style={estilos.acoesColuna}>
               <Pressable
                 onPress={() =>
@@ -311,12 +319,7 @@ export default class Home extends React.Component {
         </LinearGradient>
       </View>
     );
-
-
-
   };
-
-
 
   CartaoListaDesejos = () => {
     const { listaDesejos } = this.state;
@@ -513,7 +516,6 @@ export default class Home extends React.Component {
           </View>
         </View>
       </View>
-      
     );
   };
 
@@ -539,10 +541,8 @@ export default class Home extends React.Component {
                 </Text>
               )}
 
-              
               <this.CartaoVazio />
 
-          
               {Array.isArray(livros) && livros.length > 0 && (
                 <>
                   <View style={{ height: 10 }} />
@@ -569,7 +569,6 @@ export default class Home extends React.Component {
                 <MaterialCommunityIcons name="logout" size={18} color={CORES.branco} />
                 <Text style={estilos.textoBotaoSairFinal}>Sair</Text>
               </Pressable>
-
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -585,8 +584,6 @@ const estilos = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
   },
-
-  
   cabecalhoContainer: { width: "100%", alignItems: "center", marginTop: 0 },
   cabecalho: {
     width: "110%",
@@ -642,8 +639,6 @@ const estilos = StyleSheet.create({
     resizeMode: "contain",
     zIndex: 2,
   },
-
-
   cartao: {
     width: "100%",
     marginTop: 22,
@@ -660,8 +655,6 @@ const estilos = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 4,
   },
-
- 
   cartaoVazio: { alignItems: "flex-start", overflow: "hidden" },
   cartaoTitulo: { color: CORES.texto, fontSize: 22, fontWeight: "800", marginBottom: 6 },
   cartaoSubtitulo: { color: CORES.textoSuave, marginBottom: 18 },
@@ -676,8 +669,6 @@ const estilos = StyleSheet.create({
     gap: 8,
   },
   botaoPrimarioTexto: { color: CORES.branco, fontWeight: "800" },
-
- 
   cartaoLivro: {
     borderWidth: 0,
     padding: 0,
@@ -694,7 +685,6 @@ const estilos = StyleSheet.create({
     borderColor: "rgba(3,139,137,0.20)",
     overflow: "hidden",
   },
-
   badgeLendoLinha: {
     flexDirection: "row",
     alignItems: "center",
@@ -716,7 +706,6 @@ const estilos = StyleSheet.create({
   },
   badgeLendoTexto: { color: CORES.lendoTexto, fontWeight: "900", letterSpacing: 0.2 },
   metaLivroTexto: { color: CORES.textoSuave, fontSize: 12 },
-
   tituloLivro: {
     color: CORES.texto,
     fontSize: 22,
@@ -725,13 +714,11 @@ const estilos = StyleSheet.create({
     marginTop: 2,
   },
   autorLivro: { color: CORES.textoSuave, fontSize: 14, marginTop: 2, marginBottom: 30 },
-
   livroLinha: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
   },
-
   capaContainer: { width: 116, height: 168, alignItems: "center", justifyContent: "center" },
   capaBorda: {
     width: 116,
@@ -744,7 +731,6 @@ const estilos = StyleSheet.create({
   },
   capaImagem: { width: "100%", height: "100%", resizeMode: "cover" },
   capaVazia: { flex: 1, alignItems: "center", justifyContent: "center" },
-
   infoColuna: { flex: 1, paddingRight: 8, minHeight: 168, justifyContent: "center" },
   chipLinha: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
   chipInfo: {
@@ -759,7 +745,6 @@ const estilos = StyleSheet.create({
     borderColor: CORES.borda,
   },
   chipTexto: { color: CORES.azul500, fontWeight: "800", fontSize: 12 },
-
   acoesColuna: { width: 112, alignItems: "stretch", justifyContent: "center", gap: 10 },
   botaoPill: {
     height: 42,
@@ -781,8 +766,6 @@ const estilos = StyleSheet.create({
   },
   botaoPillTextoLido: { color: CORES.lidoBorda, fontWeight: "900" },
   botaoPillTextoDesistido: { color: CORES.desistidoBorda, fontWeight: "900" },
-
-  
   cartaoListaDesejos: { marginTop: 14, marginBottom: 10 },
   listaDesejosTopo: {
     flexDirection: "row",
@@ -832,8 +815,6 @@ const estilos = StyleSheet.create({
   autorDesejo: { color: CORES.textoSuave, fontSize: 12, marginTop: 2 },
   itemDesejoAdd: { alignItems: "center", justifyContent: "center", gap: 8 },
   itemDesejoAddTxt: { color: CORES.textoSuave, fontWeight: "700" },
-
-  
   cartaoBiblioteca: { paddingVertical: 14, marginTop: 12 },
   bibliotecaTitulo: {
     color: CORES.texto,
@@ -854,8 +835,6 @@ const estilos = StyleSheet.create({
     borderColor: CORES.borda,
   },
   textoChipBiblioteca: { color: CORES.azul500, fontWeight: "800" },
-
-
   cartaoNovidadesTexto: {
     marginTop: 16,
     paddingTop: 14,
@@ -917,7 +896,6 @@ const estilos = StyleSheet.create({
     borderColor: CORES.borda,
   },
   textoSeloData: { color: CORES.azul500, fontWeight: "800", fontSize: 12 },
-
   divisorNovidades: {
     height: 1,
     backgroundColor: CORES.borda,
@@ -962,5 +940,4 @@ const estilos = StyleSheet.create({
     fontWeight: "800",
     fontSize: 16
   },
-
 });

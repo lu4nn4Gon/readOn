@@ -80,6 +80,15 @@ export default class Login extends React.Component {
 
       this.setState({ carregando: false, senha: "" });
 
+      await AsyncStorage.setItem(
+        "@readon:session",
+        JSON.stringify({
+          email: emailKey,
+          username: user.usuario,
+          nome: user.nome,
+        })
+      );
+
       Alert.alert(
         "Bem-vindo(a)!",
         `Olá, ${user.nome}!`,
@@ -117,7 +126,6 @@ export default class Login extends React.Component {
               contentContainerStyle={estilos.conteudo}
               keyboardShouldPersistTaps="handled"
             >
-           
               <View style={estilos.areaHeroi}>
                 <View style={estilos.logoContainerAbsoluto}>
                   <Image
@@ -134,7 +142,6 @@ export default class Login extends React.Component {
                 </View>
               </View>
 
-      
               <View style={estilos.cartaoFormulario}>
                 <View style={estilos.campoCapsula}>
                   <View style={estilos.iconeCampo}>
@@ -210,8 +217,6 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
- 
   areaHeroi: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -232,8 +237,6 @@ const estilos = StyleSheet.create({
     height: 300,
     resizeMode: "contain",
   },
-
-  
   cartaoBemVindo: {
     backgroundColor: CORES.azul500,
     borderRadius: 22,
@@ -266,8 +269,6 @@ const estilos = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
   },
-
-
   cartaoFormulario: {
     backgroundColor: CORES.branco,
     borderRadius: 22,
@@ -284,7 +285,6 @@ const estilos = StyleSheet.create({
     alignSelf: "center",
     alignItems: "stretch",
   },
-
   campoCapsula: {
     flexDirection: "row",
     alignItems: "center",
@@ -306,8 +306,6 @@ const estilos = StyleSheet.create({
     marginRight: 10,
   },
   campoTexto: { flex: 1, color: CORES.textoEscuro, paddingVertical: 10, fontSize: 14 },
-
-
   botaoPrincipal: {
     backgroundColor: CORES.azul500,
     borderRadius: 16,
@@ -317,7 +315,6 @@ const estilos = StyleSheet.create({
     alignSelf: "center",
   },
   textoBotao: { color: CORES.branco, fontWeight: "800", fontSize: 16, textAlign: "center" },
-
   botaoSecundario: { paddingVertical: 12, alignItems: "center" },
   textoLink: { color: CORES.textoSuave, fontSize: 14, textDecorationLine: "underline" },
 });

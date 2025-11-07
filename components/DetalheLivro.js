@@ -6,7 +6,6 @@ import {
   Image,
   ScrollView,
   Pressable,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -59,9 +58,20 @@ const SINOPSES_LONGAS = {
 
 const KEY_LISTA = "@readon:lista_desejos";
 const KEY_AVALIACOES = (id) => `@readon:avaliacoes:${id}`;
-const KEY_LEITURA_ATUAL = "@readon:leitura_atual";
-const KEY_CURRENT_BOOK = "@readon:current_book";
-const KEY_CURRENT_BOOKS = "@readon:current_books";
+
+const SESSION_KEY = "@readon:session";
+const keyUser = (uid, name) => `@readon:${name}:${uid}`;
+
+async function getSessionUid() {
+  try {
+    const raw = await AsyncStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return s?.email || s?.username || null;
+  } catch {
+    return null;
+  }
+}
 
 const ADAPTACOES = {
   "jogos-vorazes": {
@@ -83,7 +93,6 @@ function Stars({ value = 0, size = 18 }) {
   const full = Math.floor(rounded);
   const half = rounded - full >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
-
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
       {Array.from({ length: full }).map((_, i) => (
@@ -127,10 +136,6 @@ export default class DetalheLivro extends React.Component {
     );
   };
 
-  salvarColecao = async (key, arr) => {
-    await AsyncStorage.setItem(key, JSON.stringify(arr));
-  };
-
   _extrairCapaPayload = (capa) => {
     if (typeof capa !== "string") {
       return { capaLocal: capa, capaUri: null, capa: null };
@@ -141,6 +146,12 @@ export default class DetalheLivro extends React.Component {
   setLeituraAtual = async () => {
     const livro = this.props.route?.params?.livro;
     if (!livro?.id) return;
+
+    const uid = (await getSessionUid()) || "__anon__";
+    const KEY_LEITURA_ATUAL = keyUser(uid, "leitura_atual");
+    const KEY_CURRENT_BOOK = keyUser(uid, "current_book");
+    const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
+    const KEY_LIDOS = keyUser(uid, "lidos");
 
     const { capaLocal, capaUri, capa } = this._extrairCapaPayload(livro.capa);
 
@@ -169,6 +180,28 @@ export default class DetalheLivro extends React.Component {
     arr = arr.filter((b) => b && b.id !== livro.id);
     arr.unshift(payload);
     await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(arr));
+
+    const lidosRaw = (await AsyncStorage.getItem(KEY_LIDOS)) || "[]";
+    let lidos = [];
+    try {
+      lidos = JSON.parse(lidosRaw);
+      if (!Array.isArray(lidos)) lidos = [];
+    } catch {
+      lidos = [];
+    }
+    const jaTem = lidos.some((b) => b && b.id === livro.id);
+    if (!jaTem) {
+      lidos.unshift({
+        id: livro.id,
+        titulo: livro.titulo,
+        autor: livro.autor || "",
+        capa: capa || null,
+        capaUri,
+        capaLocal,
+        lidoEm: new Date().toISOString(),
+      });
+      await AsyncStorage.setItem(KEY_LIDOS, JSON.stringify(lidos));
+    }
 
     this.props.navigation?.navigate("Home");
   };
@@ -220,7 +253,6 @@ export default class DetalheLivro extends React.Component {
             style={{ flex: 1 }}
           >
             <ScrollView contentContainerStyle={estilos.conteudo}>
-           
               <Pressable
                 style={estilos.botaoVoltar}
                 onPress={() => this.props.navigation?.navigate("AdicionarLivro")}
@@ -229,7 +261,6 @@ export default class DetalheLivro extends React.Component {
                 <Text style={estilos.txtVoltar}>Voltar</Text>
               </Pressable>
 
-           
               <View style={estilos.header}>
                 <View style={estilos.capaWrap}>
                   {livro.capa ? (
@@ -266,7 +297,6 @@ export default class DetalheLivro extends React.Component {
                 </View>
               </View>
 
-           
               {sinopseCompleta.length > 0 && (
                 <View style={estilos.caixa}>
                   <Text style={estilos.secaoTitulo}>Sinopse</Text>
@@ -274,10 +304,8 @@ export default class DetalheLivro extends React.Component {
                 </View>
               )}
 
-            
               {this.renderBotaoAdaptacao(livro)}
 
-          
               <View style={estilos.caixa}>
                 <Text style={estilos.secaoTitulo}>Avaliações</Text>
                 {avaliacoes.length ? (
@@ -293,7 +321,6 @@ export default class DetalheLivro extends React.Component {
                 )}
               </View>
 
-             
               <Pressable onPress={this.setLeituraAtual} style={estilos.botaoGrandePrim}>
                 <MaterialCommunityIcons name="book-open-outline" size={20} color={CORES.branco} />
                 <Text style={estilos.textoBotaoGrandePrim}>Adicione leitura atual</Text>
@@ -316,7 +343,6 @@ const estilos = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
   },
-
   botaoVoltar: {
     flexDirection: "row",
     alignItems: "center",
@@ -332,7 +358,6 @@ const estilos = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
-
   header: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -362,7 +387,6 @@ const estilos = StyleSheet.create({
   autor: { color: CORES.textoSuave, marginTop: 4 },
   notaLinha: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   notaTexto: { color: CORES.textoSuave, fontWeight: "700" },
-
   caixa: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -379,13 +403,11 @@ const estilos = StyleSheet.create({
     elevation: 2,
   },
   secaoTitulo: { color: CORES.texto, fontSize: 16, fontWeight: "800", marginBottom: 8 },
-
   sinopse: {
     color: CORES.textoSuave,
     fontSize: 15,
     lineHeight: 23,
   },
-
   botaoGrandePrim: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -410,7 +432,6 @@ const estilos = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.2,
   },
-
   botaoAdaptacaoDark: {
     marginTop: 10,
     flexDirection: "row",
@@ -425,7 +446,6 @@ const estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
   textoBotaoAdaptacaoDark: { color: CORES.branco, fontWeight: "900" },
-
   itemAvaliacao: {
     borderWidth: 1,
     borderColor: CORES.borda,
@@ -435,6 +455,5 @@ const estilos = StyleSheet.create({
   avAutor: { color: CORES.texto, fontWeight: "800" },
   avTexto: { color: CORES.textoSuave, marginTop: 4 },
   avQuando: { color: CORES.azul300, marginTop: 6, fontSize: 12 },
-
   vazio: { color: CORES.textoSuave },
 });
