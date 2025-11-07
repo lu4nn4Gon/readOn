@@ -106,13 +106,18 @@ export default class Home extends React.Component {
         lista = [];
       }
 
-     
+   
       const legadoRaw = await AsyncStorage.getItem(KEY_CURRENT_BOOK);
       if (legadoRaw) {
-        const legado = JSON.parse(legadoRaw);
-        if (legado?.id) {
-          lista = [legado, ...lista.filter((b) => b && b.id !== legado.id)];
-        }
+        try {
+          const legado = JSON.parse(legadoRaw);
+          if (legado?.id) {
+            lista = [legado, ...lista.filter((b) => b && b.id !== legado.id)];
+          }
+        } catch {}
+        try {
+          await AsyncStorage.removeItem(KEY_CURRENT_BOOK);
+        } catch {}
       }
 
       const livros = lista.filter(Boolean).map((b) => ({
@@ -135,14 +140,13 @@ export default class Home extends React.Component {
     }
   };
 
-
   marcarComoLido = async (livro) => {
     try {
       const { uid } = this.state;
       const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
       const KEY_READ_BOOKS = keyUser(uid, "read_books");
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book"); // legado
 
-     
       const rawCurrent = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
       const rawRead = (await AsyncStorage.getItem(KEY_READ_BOOKS)) || "[]";
       let atuais = [];
@@ -160,33 +164,83 @@ export default class Home extends React.Component {
         lidos = [];
       }
 
-     
       const novosAtuais = atuais.filter((b) => b && b.id !== livro.id);
 
-      
       const finalizado = {
         ...livro,
         finalizadoEm: new Date().toISOString(),
       };
       const novosLidos = [finalizado, ...lidos.filter((b) => b && b.id !== livro.id)];
 
-     
       await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(novosAtuais));
       await AsyncStorage.setItem(KEY_READ_BOOKS, JSON.stringify(novosLidos));
 
-    
+     
+      try { await AsyncStorage.removeItem(KEY_CURRENT_BOOK); } catch {}
+
       this.setState(
         (st) => ({ livros: st.livros.filter((b) => b.id !== livro.id) }),
         () => {
           try {
             this.props.navigation?.navigate?.("AvaliarLivro", { livro: finalizado });
-          } catch {
-           
-          }
+          } catch {}
         }
       );
     } catch (e) {
       Alert.alert("Erro", "Não foi possível marcar como lido.");
+    }
+  };
+
+  desistirLeitura = async (livro) => {
+    try {
+      const { uid } = this.state;
+      const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
+      const KEY_DROPPED_BOOKS = keyUser(uid, "dropped_books");
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book"); // legado
+
+      const rawCurrent = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
+      const rawDropped = (await AsyncStorage.getItem(KEY_DROPPED_BOOKS)) || "[]";
+
+      let atuais = [];
+      let desistidos = [];
+      try {
+        atuais = JSON.parse(rawCurrent);
+        if (!Array.isArray(atuais)) atuais = [];
+      } catch {
+        atuais = [];
+      }
+      try {
+        desistidos = JSON.parse(rawDropped);
+        if (!Array.isArray(desistidos)) desistidos = [];
+      } catch {
+        desistidos = [];
+      }
+
+      const novosAtuais = atuais.filter((b) => b && b.id !== livro.id);
+
+      const registroDesistido = {
+        ...livro,
+        desistidoEm: new Date().toISOString(),
+      };
+      const novosDesistidos = [
+        registroDesistido,
+        ...desistidos.filter((b) => b && b.id !== livro.id),
+      ];
+
+      await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(novosAtuais));
+      await AsyncStorage.setItem(KEY_DROPPED_BOOKS, JSON.stringify(novosDesistidos));
+
+     
+      try { await AsyncStorage.removeItem(KEY_CURRENT_BOOK); } catch {}
+
+      this.setState((st) => ({ livros: st.livros.filter((b) => b.id !== livro.id) }));
+
+      Alert.alert(
+        "Pronto",
+        "Você desistiu desta leitura. O livro foi removido da sua lista de lendo."
+      );
+    } catch (e) {
+      Alert.alert("Erro", "Não foi possível desistir desta leitura.");
     }
   };
 
@@ -345,7 +399,6 @@ export default class Home extends React.Component {
             </View>
 
             <View style={estilos.acoesColuna}>
-            
               <Pressable
                 onPress={() => this.marcarComoLido(livro)}
                 style={[estilos.botaoPill, estilos.botaoLidoContorno]}
@@ -360,7 +413,18 @@ export default class Home extends React.Component {
 
               <Pressable
                 onPress={() =>
-                  Alert.alert("Leitura", "Desistir da leitura (implementar lógica)")
+                  Alert.alert(
+                    "Desistir da leitura",
+                    "Tem certeza que deseja desistir deste livro?",
+                    [
+                      { text: "Cancelar", style: "cancel" },
+                      {
+                        text: "Desistir",
+                        style: "destructive",
+                        onPress: () => this.desistirLeitura(livro),
+                      },
+                    ]
+                  )
                 }
                 style={[estilos.botaoPill, estilos.botaoDesistidoContorno]}
               >
@@ -598,6 +662,7 @@ export default class Home extends React.Component {
                 </Text>
               )}
 
+             
               <this.CartaoVazio />
 
               {Array.isArray(livros) && livros.length > 0 && (
