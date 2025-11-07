@@ -17,8 +17,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const h = React.createElement;
-
 const CORES = {
   gradientStart: "#d6fcf9ff",
   gradientEnd: "#6ef0eaff",
@@ -31,7 +29,6 @@ const CORES = {
   cinza: "#302f2fff",
   sombra: "#000000",
 };
-
 
 const SINOPSES_LONGAS = {
   "o-amanhecer-na-colheita":
@@ -60,7 +57,7 @@ const SINOPSES_LONGAS = {
     "Guiada por regras não escritas dos filmes de terror, uma protagonista tenta virar a mesa quando estranhos eventos começam a acontecer. Evitar porões, não se separar do grupo, desconfiar do timing perfeito — nada parece suficiente quando o medo tem humor ácido. Enquanto a contagem de sustos cresce, a sátira revela porque certos clichês persistem. Sobreviver exige rir do absurdo e, ao mesmo tempo, levar o perigo a sério.",
 };
 
-const KEY_LISTA = "@readon:lista_desejos"; 
+const KEY_LISTA = "@readon:lista_desejos";
 const KEY_AVALIACOES = (id) => `@readon:avaliacoes:${id}`;
 const KEY_LEITURA_ATUAL = "@readon:leitura_atual";
 const KEY_CURRENT_BOOK = "@readon:current_book";
@@ -87,22 +84,17 @@ function Stars({ value = 0, size = 18 }) {
   const half = rounded - full >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
 
-  const children = [];
-  for (let i = 0; i < full; i++) {
-    children.push(
-      h(MaterialCommunityIcons, { key: "f" + i, name: "star", size, color: "#f5c518" })
-    );
-  }
-  if (half)
-    children.push(
-      h(MaterialCommunityIcons, { key: "half", name: "star-half-full", size, color: "#f5c518" })
-    );
-  for (let i = 0; i < empty; i++) {
-    children.push(
-      h(MaterialCommunityIcons, { key: "e" + i, name: "star-outline", size, color: "#f5c518" })
-    );
-  }
-  return h(View, { style: { flexDirection: "row", alignItems: "center", gap: 2 } }, children);
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+      {Array.from({ length: full }).map((_, i) => (
+        <MaterialCommunityIcons key={`f${i}`} name="star" size={size} color="#f5c518" />
+      ))}
+      {half && <MaterialCommunityIcons key="half" name="star-half-full" size={size} color="#f5c518" />}
+      {Array.from({ length: empty }).map((_, i) => (
+        <MaterialCommunityIcons key={`e${i}`} name="star-outline" size={size} color="#f5c518" />
+      ))}
+    </View>
+  );
 }
 
 export default class DetalheLivro extends React.Component {
@@ -178,7 +170,6 @@ export default class DetalheLivro extends React.Component {
     arr.unshift(payload);
     await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(arr));
 
-   
     this.props.navigation?.navigate("Home");
   };
 
@@ -192,141 +183,125 @@ export default class DetalheLivro extends React.Component {
   renderBotaoAdaptacao = (livro) => {
     const info = ADAPTACOES[livro.id] || livro.adaptacao;
     if (!info) return null;
-    return h(
-      Pressable,
-      {
-        onPress: () => {
-          const locais = (info.ondeVer || []).join(" · ");
-          Alert.alert("Adaptação", `${info.titulo}\n\nOnde ver: ${locais || "—"}`);
-        },
-        style: [estilos.botaoAdaptacaoDark],
-      },
-      h(Text, { style: estilos.textoBotaoAdaptacaoDark }, "🎬 Ver adaptação e onde ver")
+    const locais = (info.ondeVer || []).join(" · ");
+    return (
+      <Pressable
+        onPress={() => Alert.alert("Adaptação", `${info.titulo}\n\nOnde ver: ${locais || "—"}`)}
+        style={estilos.botaoAdaptacaoDark}
+      >
+        <Text style={estilos.textoBotaoAdaptacaoDark}>🎬 Ver adaptação e onde ver</Text>
+      </Pressable>
     );
   };
 
-  renderItemAvaliacao = ({ item }) =>
-    h(
-      View,
-      { style: estilos.itemAvaliacao },
-      h(
-        View,
-        { style: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" } },
-        h(Text, { style: estilos.avAutor }, item.usuario),
-        h(Stars, { value: item.nota, size: 16 })
-      ),
-      item.comentario ? h(Text, { style: estilos.avTexto }, item.comentario) : null,
-      h(Text, { style: estilos.avQuando }, new Date(item.data).toLocaleDateString())
-    );
+  renderItemAvaliacao = ({ item }) => (
+    <View style={estilos.itemAvaliacao}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text style={estilos.avAutor}>{item.usuario}</Text>
+        <Stars value={item.nota} size={16} />
+      </View>
+      {item.comentario ? <Text style={estilos.avTexto}>{item.comentario}</Text> : null}
+      <Text style={estilos.avQuando}>{new Date(item.data).toLocaleDateString()}</Text>
+    </View>
+  );
 
   render() {
     const livro = this.props.route?.params?.livro;
     const { notaMedia, avaliacoes } = this.state;
     if (!livro) return null;
 
-   
-    const voltar = h(
-      Pressable,
-      { style: estilos.botaoVoltar, onPress: () => this.props.navigation?.navigate("AdicionarLivro") },
-      h(MaterialCommunityIcons, { name: "arrow-left", size: 20, color: CORES.azul500 }),
-      h(Text, { style: estilos.txtVoltar }, "Voltar")
-    );
-
-    const header = h(
-      View,
-      { style: estilos.header },
-      h(
-        View,
-        { style: estilos.capaWrap },
-        livro.capa
-          ? h(Image, {
-              source: typeof livro.capa === "string" ? { uri: livro.capa } : livro.capa,
-              style: estilos.capa,
-            })
-          : h(
-              View,
-              {
-                style: [
-                  estilos.capa,
-                  { alignItems: "center", justifyContent: "center", backgroundColor: "#F1F2F4" },
-                ],
-              },
-              h(MaterialCommunityIcons, { name: "book-open-page-variant", size: 48, color: CORES.azul300 })
-            )
-      ),
-      h(
-        View,
-        { style: { flex: 1 } },
-        h(Text, { style: estilos.titulo }, livro.titulo),
-        livro.autor ? h(Text, { style: estilos.autor }, livro.autor) : null,
-        h(
-          View,
-          { style: estilos.notaLinha },
-          h(Stars, { value: notaMedia }),
-          h(Text, { style: estilos.notaTexto }, avaliacoes.length ? `${notaMedia.toFixed(1)} (${avaliacoes.length})` : "Sem avaliações")
-        )
-      )
-    );
-
-   
     const sinopseCompleta = livro.sinopseLonga || SINOPSES_LONGAS[livro.id] || livro.sinopse || "";
-    const sinopseBox =
-      sinopseCompleta.length > 0
-        ? h(
-            View,
-            { style: estilos.caixa },
-            h(Text, { style: estilos.secaoTitulo }, "Sinopse"),
-            h(Text, { style: estilos.sinopse }, sinopseCompleta)
-          )
-        : null;
 
-    const adapt = this.renderBotaoAdaptacao(livro);
+    return (
+      <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1 }}
+          >
+            <ScrollView contentContainerStyle={estilos.conteudo}>
+           
+              <Pressable
+                style={estilos.botaoVoltar}
+                onPress={() => this.props.navigation?.navigate("AdicionarLivro")}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={20} color={CORES.azul500} />
+                <Text style={estilos.txtVoltar}>Voltar</Text>
+              </Pressable>
 
-    
-    const botaoLeituraAtual = h(
-      Pressable,
-      { onPress: this.setLeituraAtual, style: estilos.botaoGrandePrim },
-      h(MaterialCommunityIcons, { name: "book-open-outline", size: 20, color: CORES.branco }),
-      h(Text, { style: estilos.textoBotaoGrandePrim }, "Adicione leitura atual")
-    );
+           
+              <View style={estilos.header}>
+                <View style={estilos.capaWrap}>
+                  {livro.capa ? (
+                    <Image
+                      source={typeof livro.capa === "string" ? { uri: livro.capa } : livro.capa}
+                      style={estilos.capa}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        estilos.capa,
+                        { alignItems: "center", justifyContent: "center", backgroundColor: "#F1F2F4" },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="book-open-page-variant"
+                        size={48}
+                        color={CORES.azul300}
+                      />
+                    </View>
+                  )}
+                </View>
 
-    
-    const avaliacoesSec = h(
-      View,
-      { style: estilos.caixa },
-      h(Text, { style: estilos.secaoTitulo }, "Avaliações"),
-      avaliacoes.length
-        ? h(FlatList, {
-            data: avaliacoes,
-            keyExtractor: (_, i) => "av-" + i,
-            renderItem: this.renderItemAvaliacao,
-            ItemSeparatorComponent: () => h(View, { style: { height: 8 } }),
-            scrollEnabled: false,
-          })
-        : h(Text, { style: estilos.vazio }, "Ainda não há avaliações.")
-    );
+                <View style={{ flex: 1 }}>
+                  <Text style={estilos.titulo}>{livro.titulo}</Text>
+                  {livro.autor ? <Text style={estilos.autor}>{livro.autor}</Text> : null}
 
-    return h(
-      LinearGradient,
-      { colors: [CORES.gradientStart, CORES.gradientEnd], style: { flex: 1 } },
-      h(
-        SafeAreaView,
-        { style: { flex: 1 }, edges: ["bottom"] },
-        h(
-          KeyboardAvoidingView,
-          { behavior: Platform.OS === "ios" ? "padding" : undefined, style: { flex: 1 } },
-          h(
-            ScrollView,
-            { contentContainerStyle: estilos.conteudo },
-            voltar,
-            header,
-            sinopseBox,
-            adapt,
-            avaliacoesSec,
-            botaoLeituraAtual
-          )
-        )
-      )
+                  <View style={estilos.notaLinha}>
+                    <Stars value={notaMedia} />
+                    <Text style={estilos.notaTexto}>
+                      {avaliacoes.length ? `${notaMedia.toFixed(1)} (${avaliacoes.length})` : "Sem avaliações"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+           
+              {sinopseCompleta.length > 0 && (
+                <View style={estilos.caixa}>
+                  <Text style={estilos.secaoTitulo}>Sinopse</Text>
+                  <Text style={estilos.sinopse}>{sinopseCompleta}</Text>
+                </View>
+              )}
+
+            
+              {this.renderBotaoAdaptacao(livro)}
+
+          
+              <View style={estilos.caixa}>
+                <Text style={estilos.secaoTitulo}>Avaliações</Text>
+                {avaliacoes.length ? (
+                  <FlatList
+                    data={avaliacoes}
+                    keyExtractor={(_, i) => "av-" + i}
+                    renderItem={this.renderItemAvaliacao}
+                    ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                    scrollEnabled={false}
+                  />
+                ) : (
+                  <Text style={estilos.vazio}>Ainda não há avaliações.</Text>
+                )}
+              </View>
+
+             
+              <Pressable onPress={this.setLeituraAtual} style={estilos.botaoGrandePrim}>
+                <MaterialCommunityIcons name="book-open-outline" size={20} color={CORES.branco} />
+                <Text style={estilos.textoBotaoGrandePrim}>Adicione leitura atual</Text>
+              </Pressable>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 }
@@ -405,7 +380,6 @@ const estilos = StyleSheet.create({
   },
   secaoTitulo: { color: CORES.texto, fontSize: 16, fontWeight: "800", marginBottom: 8 },
 
-  
   sinopse: {
     color: CORES.textoSuave,
     fontSize: 15,
