@@ -26,6 +26,7 @@ const CORES = {
   borda: "#E6E3DF",
   cinza: "#302f2fff",
   sombra: "#000000",
+  quadradoFundo: "#14c9c6ff",
 };
 
 const SINOPSES_LONGAS = {
@@ -115,7 +116,8 @@ function Stars({ value = 0, size = 18 }) {
 
 export default class DetalheLivro extends React.Component {
   state = {
-    emLista: false,
+    emLista: false,         
+    emFavoritos: false,     
     avaliacoes: [],
     notaMedia: 0,
     mostrarAdaptacao: false,
@@ -147,16 +149,21 @@ export default class DetalheLivro extends React.Component {
 
     const avRaw = (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
     let avaliacoes = this.lerJSON(avRaw, []);
-
     avaliacoes.sort((a, b) => {
       const da = new Date(a?.data || 0).getTime();
       const db = new Date(b?.data || 0).getTime();
       return db - da;
     });
 
+    const uid = (await getSessionUid()) || "__anon__";
+    const KEY_FAVORITOS = keyUser(uid, "favoritos");
+    const favRaw = (await AsyncStorage.getItem(KEY_FAVORITOS)) || "[]";
+    const favoritos = this.lerJSON(favRaw, []);
+
     this.setState(
       {
         emLista: lista.includes(livro.id),
+        emFavoritos: favoritos.some((b) => b && b.id === livro.id),
         avaliacoes,
       },
       this.recalcularMedia
@@ -220,6 +227,55 @@ export default class DetalheLivro extends React.Component {
 
     this.props.navigation?.navigate("Home");
   };
+
+  // === handlers dos botões (sem seção "Ações") ===
+  toggleListaDesejos = async () => {
+    const livro = this.props.route?.params?.livro;
+    if (!livro?.id) return;
+
+    const raw = (await AsyncStorage.getItem(KEY_LISTA)) || "[]";
+    let lista = this.lerJSON(raw, []);
+    const existe = lista.includes(livro.id);
+
+    if (existe) {
+      lista = lista.filter((id) => id !== livro.id);
+    } else {
+      lista.unshift(livro.id);
+    }
+
+    await AsyncStorage.setItem(KEY_LISTA, JSON.stringify(lista));
+    this.setState({ emLista: !existe });
+  };
+
+  toggleFavorito = async () => {
+    const livro = this.props.route?.params?.livro;
+    if (!livro?.id) return;
+
+    const uid = (await getSessionUid()) || "__anon__";
+    const KEY_FAVORITOS = keyUser(uid, "favoritos");
+
+    const raw = (await AsyncStorage.getItem(KEY_FAVORITOS)) || "[]";
+    let favoritos = this.lerJSON(raw, []);
+    const existe = favoritos.some((b) => b && b.id === livro.id);
+
+    if (existe) {
+      favoritos = favoritos.filter((b) => b && b.id !== livro.id);
+    } else {
+      const { capaLocal, capaUri, capa } = this._extrairCapaPayload(livro.capa);
+      favoritos.unshift({
+        id: livro.id,
+        titulo: livro.titulo,
+        autor: livro.autor || "",
+        capa: capa || null,
+        capaUri,
+        capaLocal,
+      });
+    }
+
+    await AsyncStorage.setItem(KEY_FAVORITOS, JSON.stringify(favoritos));
+    this.setState({ emFavoritos: !existe });
+  };
+  // ==============================================
 
   recalcularMedia = () => {
     const { avaliacoes } = this.state;
@@ -302,6 +358,48 @@ export default class DetalheLivro extends React.Component {
     </View>
   );
 
+  // só os botões (sem caixa/seção)
+  renderBotoesApenas = () => {
+    const { emLista, emFavoritos } = this.state;
+    return (
+      <View style={estilos.wrapBotoesSoltos}>
+        <Pressable
+          onPress={this.toggleListaDesejos}
+          style={[
+            estilos.botaoQuadrado,
+            emLista && { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={emLista ? "heart" : "heart-plus"}
+            size={30}
+            color={emLista ? CORES.branco : CORES.texto}
+          />
+          <Text style={[estilos.textoBotao, emLista && { color: CORES.branco }]}>
+            {emLista ? "Na lista de desejos" : "Lista de desejos"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={this.toggleFavorito}
+          style={[
+            estilos.botaoQuadrado,
+            emFavoritos && { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={emFavoritos ? "star" : "star-plus"}
+            size={30}
+            color={emFavoritos ? CORES.branco : CORES.texto}
+          />
+          <Text style={[estilos.textoBotao, emFavoritos && { color: CORES.branco }]}>
+            {emFavoritos ? "Favorito" : "Favoritar"}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  };
+
   render() {
     const livro = this.props.route?.params?.livro;
     const { notaMedia, avaliacoes } = this.state;
@@ -369,6 +467,9 @@ export default class DetalheLivro extends React.Component {
               )}
 
               {this.renderBotaoAdaptacao(livro)}
+
+              {/* SOMENTE OS BOTÕES, SEM TÍTULO/CAIXA */}
+              {this.renderBotoesApenas()}
 
               <View style={estilos.caixa}>
                 <Text style={estilos.secaoTitulo}>Avaliações</Text>
@@ -451,6 +552,7 @@ const estilos = StyleSheet.create({
   autor: { color: CORES.textoSuave, marginTop: 4 },
   notaLinha: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   notaTexto: { color: CORES.textoSuave, fontWeight: "700" },
+
   caixa: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -472,6 +574,38 @@ const estilos = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
   },
+
+  
+  wrapBotoesSoltos: {
+    width: "100%",
+    maxWidth: LARGURA_MAX,
+    marginTop: 10,
+    marginBottom: 4,
+    flexDirection: "row",
+    gap: 12,
+  },
+  botaoQuadrado: {
+    flex: 1,
+    backgroundColor: CORES.quadradoFundo,
+    borderWidth: 2,
+    borderColor: CORES.borda,
+    borderRadius: 16,
+    paddingVertical: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: CORES.sombra,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 2,
+  },
+  textoBotao: {
+    marginTop: 6,
+    fontWeight: "900",
+    color: CORES.texto,
+    textAlign: "center",
+  },
+
   botaoGrandePrim: {
     width: "100%",
     maxWidth: LARGURA_MAX,
