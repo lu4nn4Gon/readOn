@@ -58,6 +58,7 @@ export default class Home extends React.Component {
     livros: [],
     listaDesejos: [],
     userNome: "usuário",
+    uid: "__anon__",
   };
 
   componentDidMount() {
@@ -105,6 +106,7 @@ export default class Home extends React.Component {
         lista = [];
       }
 
+     
       const legadoRaw = await AsyncStorage.getItem(KEY_CURRENT_BOOK);
       if (legadoRaw) {
         const legado = JSON.parse(legadoRaw);
@@ -127,9 +129,64 @@ export default class Home extends React.Component {
 
       const listaDesejos = [];
 
-      this.setState({ livros, listaDesejos, carregando: false, userNome });
+      this.setState({ livros, listaDesejos, carregando: false, userNome, uid });
     } catch {
       this.setState({ livros: [], listaDesejos: [], carregando: false });
+    }
+  };
+
+
+  marcarComoLido = async (livro) => {
+    try {
+      const { uid } = this.state;
+      const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
+      const KEY_READ_BOOKS = keyUser(uid, "read_books");
+
+     
+      const rawCurrent = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
+      const rawRead = (await AsyncStorage.getItem(KEY_READ_BOOKS)) || "[]";
+      let atuais = [];
+      let lidos = [];
+      try {
+        atuais = JSON.parse(rawCurrent);
+        if (!Array.isArray(atuais)) atuais = [];
+      } catch {
+        atuais = [];
+      }
+      try {
+        lidos = JSON.parse(rawRead);
+        if (!Array.isArray(lidos)) lidos = [];
+      } catch {
+        lidos = [];
+      }
+
+     
+      const novosAtuais = atuais.filter((b) => b && b.id !== livro.id);
+
+      
+      const finalizado = {
+        ...livro,
+        finalizadoEm: new Date().toISOString(),
+      };
+      const novosLidos = [finalizado, ...lidos.filter((b) => b && b.id !== livro.id)];
+
+     
+      await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(novosAtuais));
+      await AsyncStorage.setItem(KEY_READ_BOOKS, JSON.stringify(novosLidos));
+
+    
+      this.setState(
+        (st) => ({ livros: st.livros.filter((b) => b.id !== livro.id) }),
+        () => {
+          try {
+            this.props.navigation?.navigate?.("AvaliarLivro", { livro: finalizado });
+          } catch {
+           
+          }
+        }
+      );
+    } catch (e) {
+      Alert.alert("Erro", "Não foi possível marcar como lido.");
     }
   };
 
@@ -141,8 +198,7 @@ export default class Home extends React.Component {
   };
 
   aoPressionarAdicionar = () => {
-    const podeNavegar = !!this.props.navigation?.navigate;
-    if (podeNavegar) {
+    if (this.props.navigation?.navigate) {
       try {
         this.props.navigation.navigate("AdicionarLivro");
       } catch {
@@ -154,10 +210,13 @@ export default class Home extends React.Component {
   };
 
   irParaBiblioteca = (filtro) => {
-    const pode = !!this.props.navigation?.navigate;
-    if (pode) {
+    if (this.props.navigation?.navigate) {
       try {
-        this.props.navigation.navigate("Biblioteca", filtro ? { filtro } : undefined);
+        if (filtro === "lidos") {
+          this.props.navigation.navigate("LivrosLidos");
+        } else {
+          this.props.navigation.navigate("Biblioteca", filtro ? { filtro } : undefined);
+        }
       } catch {
         Alert.alert("Biblioteca", "Tela de biblioteca ainda não foi implementada.");
       }
@@ -167,8 +226,7 @@ export default class Home extends React.Component {
   };
 
   irParaLancamentos = () => {
-    const pode = !!this.props.navigation?.navigate;
-    if (pode) {
+    if (this.props.navigation?.navigate) {
       try {
         this.props.navigation.navigate("Lancamentos");
       } catch {
@@ -287,10 +345,9 @@ export default class Home extends React.Component {
             </View>
 
             <View style={estilos.acoesColuna}>
+            
               <Pressable
-                onPress={() =>
-                  Alert.alert("Leitura", "Marcar como lida (implementar lógica)")
-                }
+                onPress={() => this.marcarComoLido(livro)}
                 style={[estilos.botaoPill, estilos.botaoLidoContorno]}
               >
                 <MaterialCommunityIcons
@@ -933,11 +990,11 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     alignSelf: "center",
-    marginTop: 10
+    marginTop: 10,
   },
   textoBotaoSairFinal: {
     color: CORES.branco,
     fontWeight: "800",
-    fontSize: 16
+    fontSize: 16,
   },
 });
