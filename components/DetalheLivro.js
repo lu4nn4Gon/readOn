@@ -8,7 +8,6 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   FlatList,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -86,6 +85,14 @@ const ADAPTACOES = {
     titulo: "Mockingjay (2014/2015)",
     ondeVer: ["Prime Video (aluguel/compra)"],
   },
+  "a-empregada": {
+    titulo: "A Empregada (adaptação em produção)",
+    ondeVer: ["Em produção"],
+  },
+  "o-amanhecer-na-colheita": {
+    titulo: "O Amanhecer na Colheita (adaptação em produção)",
+    ondeVer: ["Estreia nos cinemas: novembro de 2026"],
+  },
 };
 
 function Stars({ value = 0, size = 18 }) {
@@ -106,12 +113,12 @@ function Stars({ value = 0, size = 18 }) {
   );
 }
 
-
 export default class DetalheLivro extends React.Component {
   state = {
     emLista: false,
     avaliacoes: [],
     notaMedia: 0,
+    mostrarAdaptacao: false,
   };
 
   componentDidMount() {
@@ -141,7 +148,6 @@ export default class DetalheLivro extends React.Component {
     const avRaw = (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
     let avaliacoes = this.lerJSON(avRaw, []);
 
-   
     avaliacoes.sort((a, b) => {
       const da = new Date(a?.data || 0).getTime();
       const db = new Date(b?.data || 0).getTime();
@@ -222,17 +228,64 @@ export default class DetalheLivro extends React.Component {
     this.setState({ notaMedia: soma / avaliacoes.length });
   };
 
+  getAdaptacaoInfo = (livro) => {
+    return ADAPTACOES[livro.id] || livro.adaptacao || null;
+  };
+
+  toggleAdaptacao = () => {
+    this.setState((st) => ({ mostrarAdaptacao: !st.mostrarAdaptacao }));
+  };
+
   renderBotaoAdaptacao = (livro) => {
-    const info = ADAPTACOES[livro.id] || livro.adaptacao;
+    const info = this.getAdaptacaoInfo(livro);
     if (!info) return null;
-    const locais = (info.ondeVer || []).join(" · ");
+
+    const aberto = this.state.mostrarAdaptacao;
     return (
-      <Pressable
-        onPress={() => Alert.alert("Adaptação", `${info.titulo}\n\nOnde ver: ${locais || "—"}`)}
-        style={estilos.botaoAdaptacaoDark}
-      >
-        <Text style={estilos.textoBotaoAdaptacaoDark}>🎬 Ver adaptação e onde ver</Text>
-      </Pressable>
+      <>
+        <Pressable onPress={this.toggleAdaptacao} style={estilos.botaoAdaptacaoDark}>
+          <MaterialCommunityIcons
+            name={aberto ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={CORES.branco}
+          />
+          <Text style={estilos.textoBotaoAdaptacaoDark}>
+            🎬 {aberto ? "Ocultar filmes / onde ver" : "Ver filmes / onde ver"}
+          </Text>
+        </Pressable>
+
+        {aberto && this.renderAdaptacaoCard(info)}
+      </>
+    );
+  };
+
+  renderAdaptacaoCard = (info) => {
+    const locais = Array.isArray(info.ondeVer) ? info.ondeVer : [];
+    return (
+      <View style={[estilos.caixa, estilos.caixaAdaptacao]}>
+        <View style={estilos.adaptTop}>
+          <MaterialCommunityIcons name="movie-open-outline" size={18} color={CORES.azul500} />
+          <Text style={estilos.adaptTitulo}>Adaptação</Text>
+        </View>
+
+        <Text style={estilos.adaptFilme}>{info.titulo || "—"}</Text>
+
+        {locais.length ? (
+          <View style={{ marginTop: 8 }}>
+            <Text style={estilos.adaptSub}>Onde assistir</Text>
+            <View style={{ marginTop: 6, gap: 6 }}>
+              {locais.map((l, i) => (
+                <View key={i} style={estilos.linhaBullet}>
+                  <View style={estilos.bullet} />
+                  <Text style={estilos.adaptItem}>{l}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <Text style={[estilos.adaptItem, { marginTop: 6 }]}>—</Text>
+        )}
+      </View>
     );
   };
 
@@ -457,6 +510,28 @@ const estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
   textoBotaoAdaptacaoDark: { color: CORES.branco, fontWeight: "900" },
+  caixaAdaptacao: {
+    borderLeftWidth: 4,
+    borderLeftColor: "rgba(3,139,137,0.35)",
+    marginTop: 10,
+  },
+  adaptTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  adaptTitulo: { color: CORES.texto, fontWeight: "800" },
+  adaptFilme: { color: CORES.texto, fontWeight: "900", fontSize: 16, marginTop: 2 },
+  adaptSub: { color: CORES.textoSuave, fontWeight: "800" },
+  linhaBullet: { flexDirection: "row", alignItems: "center", gap: 8 },
+  bullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: CORES.azul500,
+  },
+  adaptItem: { color: CORES.texto, fontSize: 14 },
   itemAvaliacao: {
     borderWidth: 1,
     borderColor: CORES.borda,
