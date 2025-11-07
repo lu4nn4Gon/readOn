@@ -119,6 +119,14 @@ export default class Home extends React.Component {
     }
   };
 
+  sair = () => {
+  this.props.navigation?.reset?.({
+    index: 0,
+    routes: [{ name: "Login" }],
+  });
+  };
+
+
   aoPressionarAdicionar = () => {
     const podeNavegar = !!this.props.navigation?.navigate;
     if (podeNavegar) {
@@ -303,6 +311,9 @@ export default class Home extends React.Component {
         </LinearGradient>
       </View>
     );
+
+
+
   };
 
 
@@ -502,6 +513,7 @@ export default class Home extends React.Component {
           </View>
         </View>
       </View>
+      
     );
   };
 
@@ -552,6 +564,12 @@ export default class Home extends React.Component {
               <this.SecaoNovidades />
 
               <View style={{ height: 28 }} />
+
+              <Pressable onPress={this.sair} style={estilos.botaoSairFinal}>
+                <MaterialCommunityIcons name="logout" size={18} color={CORES.branco} />
+                <Text style={estilos.textoBotaoSairFinal}>Sair</Text>
+              </Pressable>
+
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -925,4 +943,24 @@ const estilos = StyleSheet.create({
     borderColor: CORES.borda,
   },
   textoSeloNumero: { color: CORES.azul500, fontWeight: "900", fontSize: 12 },
+  botaoSairFinal: {
+    width: "100%",
+    maxWidth: LARGURA_MAXIMA,
+    backgroundColor: CORES.azul500,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    alignSelf: "center",
+    marginTop: 10
+  },
+  textoBotaoSairFinal: {
+    color: CORES.branco,
+    fontWeight: "800",
+    fontSize: 16
+  },
+
 });
