@@ -1,3 +1,4 @@
+// App.js
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -8,6 +9,7 @@ import Cadastro from "./components/Cadastro";
 import Home from "./components/Home";
 import AdicionarLivro from "./components/AdicionarLivro";
 import DetalheLivro from "./components/DetalheLivro";
+import AvaliarLivro from "./components/AvaliarLivro"; // <<< NOVO
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +29,11 @@ export default function App() {
         />
 
         <Stack.Screen name="DetalheLivro" component={DetalheLivro} />
+        <Stack.Screen
+          name="AvaliarLivro"
+          component={AvaliarLivro}
+          options={{ headerShown: false }} // <<< NOVO
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

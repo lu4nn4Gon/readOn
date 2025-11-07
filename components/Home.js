@@ -179,6 +179,15 @@ export default class Home extends React.Component {
     }
   };
 
+ 
+  irParaAvaliacao = (livro) => {
+    try {
+      this.props.navigation?.navigate?.("AvaliarLivro", { livro });
+    } catch {
+      Alert.alert("Navegação", "Tela 'AvaliarLivro' não encontrada.");
+    }
+  };
+
   Cabecalho = () => {
     const nome = this.state.userNome || "usuário";
     return (
@@ -287,10 +296,9 @@ export default class Home extends React.Component {
             </View>
 
             <View style={estilos.acoesColuna}>
+           
               <Pressable
-                onPress={() =>
-                  Alert.alert("Leitura", "Marcar como lida (implementar lógica)")
-                }
+                onPress={() => this.irParaAvaliacao(livro)}
                 style={[estilos.botaoPill, estilos.botaoLidoContorno]}
               >
                 <MaterialCommunityIcons
