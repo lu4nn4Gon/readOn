@@ -157,9 +157,6 @@ export default class LivrosFavoritos extends React.Component {
     <View style={estilos.vazio}>
       <MaterialCommunityIcons name="star-outline" size={28} color={CORES.textoSuave} />
       <Text style={estilos.vazioTitulo}>Sem favoritos ainda</Text>
-      <Text style={estilos.vazioSub}>
-        Toque na estrela em um livro para adicioná-lo aos seus favoritos.
-      </Text>
     </View>
   );
 
