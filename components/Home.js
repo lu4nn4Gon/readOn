@@ -642,17 +642,22 @@ export default class Home extends React.Component {
   );
 
   SecaoNovidades = () => {
-    const LANCAMENTOS = [
-      { id: "l1", titulo: "A Cidade de Bronze", data: "2025-10-18" },
-      { id: "l2", titulo: "O Problema dos 3 Corpos (edição comentada)", data: "2025-10-22" },
-      { id: "l3", titulo: "A Biblioteca da Meia-Noite", data: "2025-11-02" },
-    ];
-    const EM_ALTA = [
-      { id: "h1", titulo: "Torto Arado" },
-      { id: "h2", titulo: "É Assim que Acaba" },
-      { id: "h3", titulo: "Verity" },
-      { id: "h4", titulo: "O Homem de Giz" },
-    ];
+ 
+    const pick = (ids) => ids.map((id) => CATALOGO_MINIMO[id]).filter(Boolean);
+
+   
+    const LANCAMENTOS = pick([
+      "o-amanhecer-na-colheita",
+      "jogos-vorazes",
+      "a-empregada",
+    ]);
+
+    const EM_ALTA = pick([
+      "como-nos-filmes",
+      "nao-e-como-nos-filmes",
+      "o-massacre-da-mansao-hope",
+      "asas-reluzentes",
+    ]);
 
     return (
       <View style={[estilos.cartao, estilos.cartaoNovidadesTexto]}>
@@ -664,29 +669,16 @@ export default class Home extends React.Component {
         <View style={estilos.blocoNovidades}>
           <View style={estilos.linhaBlocoTopo}>
             <Text style={estilos.subtituloBloco}>Lançamentos</Text>
-            <Pressable onPress={this.irParaLancamentos} style={estilos.verTodosBotao}>
-              <Text style={estilos.verTodosTexto}>Ver todos</Text>
-              <MaterialCommunityIcons name="chevron-right" size={18} color={CORES.azul500} />
-            </Pressable>
           </View>
 
           <View style={estilos.listaTexto}>
             {LANCAMENTOS.map((it) => (
-              <Pressable
-                key={it.id}
-                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                onPress={() => Alert.alert("Lançamento", `${it.titulo} — ${this.formatarData(it.data)}`)}
-                style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-              >
-                <View style={estilos.linhaLancamento}>
-                  <View style={estilos.pontoLista} />
-                  <Text style={estilos.itemLancamentoTitulo} numberOfLines={1}>{it.titulo}</Text>
-                  <View style={estilos.seloData}>
-                    <MaterialCommunityIcons name="calendar" size={12} color={CORES.azul500} />
-                    <Text style={estilos.textoSeloData}>{this.formatarData(it.data)}</Text>
-                  </View>
-                </View>
-              </Pressable>
+              <View key={it.id} style={estilos.linhaLancamento}>
+                <View style={estilos.pontoLista} />
+                <Text style={estilos.itemLancamentoTitulo} numberOfLines={1}>
+                  {it.titulo}
+                </Text>
+              </View>
             ))}
           </View>
         </View>
@@ -697,25 +689,21 @@ export default class Home extends React.Component {
           <Text style={estilos.subtituloBloco}>Em alta</Text>
           <View style={estilos.listaTexto}>
             {EM_ALTA.map((it, idx) => (
-              <Pressable
-                key={it.id}
-                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                onPress={() => Alert.alert("Em alta", `${idx + 1}. ${it.titulo}`)}
-                style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-              >
-                <View style={estilos.linhaAlta}>
-                  <View style={estilos.seloNumero}>
-                    <Text style={estilos.textoSeloNumero}>{idx + 1}</Text>
-                  </View>
-                  <Text style={estilos.itemAltaTitulo} numberOfLines={1}>{it.titulo}</Text>
+              <View key={it.id} style={estilos.linhaAlta}>
+                <View style={estilos.seloNumero}>
+                  <Text style={estilos.textoSeloNumero}>{idx + 1}</Text>
                 </View>
-              </Pressable>
+                <Text style={estilos.itemAltaTitulo} numberOfLines={1}>
+                  {it.titulo}
+                </Text>
+              </View>
             ))}
           </View>
         </View>
       </View>
     );
   };
+
 
   render() {
     const { carregando, livros } = this.state;
