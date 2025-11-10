@@ -203,6 +203,7 @@ const estilos = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
+    paddingTop: 45,
   },
   topo: {
     paddingTop: 24,
