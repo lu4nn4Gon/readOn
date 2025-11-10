@@ -3,23 +3,100 @@ import {
   View,
   Text,
   StyleSheet,
+  Image,
   ScrollView,
   Pressable,
-  Image,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+const CATALOGO_MINIMO = {
+  "o-amanhecer-na-colheita": {
+    id: "o-amanhecer-na-colheita",
+    titulo: "O Amanhecer na Colheita",
+    autor: "Suzanne Collins",
+    capa: require("../assets/livros/o-amanhecer-na-colheita.jpg"),
+  },
+  "jogos-vorazes": {
+    id: "jogos-vorazes",
+    titulo: "Jogos Vorazes",
+    autor: "Suzanne Collins",
+    capa: require("../assets/livros/jogos-vorazes.jpg"),
+  },
+  "jogos-vorazes-em-chamas": {
+    id: "jogos-vorazes-em-chamas",
+    titulo: "Jogos Vorazes: Em Chamas",
+    autor: "Suzanne Collins",
+    capa: require("../assets/livros/jogos-vorazes-em-chamas.jpg"),
+  },
+  "jogos-vorazes-a-esperanca": {
+    id: "jogos-vorazes-a-esperanca",
+    titulo: "Jogos Vorazes: A Esperança",
+    autor: "Suzanne Collins",
+    capa: require("../assets/livros/jogos-vorazes-a-esperanca.jpg"),
+  },
+  "como-nos-filmes": {
+    id: "como-nos-filmes",
+    titulo: "Como nos Filmes",
+    autor: "Lynn Painter",
+    capa: require("../assets/livros/como-nos-filmes.jpg"),
+  },
+  "nao-e-como-nos-filmes": {
+    id: "nao-e-como-nos-filmes",
+    titulo: "Não é como nos Filmes",
+    autor: "Lynn Painter",
+    capa: require("../assets/livros/nao-e-como-nos-filmes.jpg"),
+  },
+  "a-empregada": {
+    id: "a-empregada",
+    titulo: "A Empregada",
+    autor: "Freida McFadden",
+    capa: require("../assets/livros/a-empregada.jpg"),
+  },
+  "a-empregada-esta-de-olho": {
+    id: "a-empregada-esta-de-olho",
+    titulo: "A Empregada Está de Olho",
+    autor: "Freida McFadden",
+    capa: require("../assets/livros/a-empregada-esta-de-olho.jpg"),
+  },
+  "o-segredo-da-empregada": {
+    id: "o-segredo-da-empregada",
+    titulo: "O Segredo da Empregada",
+    autor: "Freida McFadden",
+    capa: require("../assets/livros/o-segredo-da-empregada.jpg"),
+  },
+  "o-massacre-da-mansao-hope": {
+    id: "o-massacre-da-mansao-hope",
+    titulo: "O Massacre da Mansão Hope",
+    autor: "Riley Sager",
+    capa: require("../assets/livros/o-massacre-da-mansao-hope.jpg"),
+  },
+  "asas-reluzentes": {
+    id: "asas-reluzentes",
+    titulo: "Asas Reluzentes",
+    autor: "Allison Saft",
+    capa: require("../assets/livros/asas-reluzentes.jpg"),
+  },
+  "como-sobreviver-a-um-filme-de-terror": {
+    id: "como-sobreviver-a-um-filme-de-terror",
+    titulo: "Como sobreviver a um filme de terror",
+    autor: "Scarlett Dunmore",
+    capa: require("../assets/livros/como-sobreviver-a-um-filme-de-terror.jpg"),
+  },
+};
+
+
 const SESSION_KEY = "@readon:session";
-const KEY_LISTA = "@readon:lista_desejos"; 
 const keyUser = (uid, name) => `@readon:${name}:${uid}`;
+const KEY_LISTA = (uid) => keyUser(uid, "lista_desejos");
 
 const arteHome = require("../assets/home.png");
+
 
 const CORES = {
   inicioGradiente: "#d6fcf9ff",
@@ -40,6 +117,7 @@ const CORES = {
 };
 
 const LARGURA_MAXIMA = 520;
+
 
 async function getSession() {
   try {
@@ -72,12 +150,11 @@ export default class Home extends React.Component {
 
   resolverFonteCapa = (capa) => {
     if (!capa) return null;
-    if (typeof capa === "number") return capa;       
-    if (typeof capa === "string") return { uri: capa }; 
-    if (capa?.uri) return { uri: capa.uri };         
+    if (typeof capa === "number") return capa; 
+    if (typeof capa === "string") return { uri: capa };
+    if (capa?.uri) return { uri: capa.uri };
     return null;
   };
-
 
   formatarData = (iso) => {
     if (!iso) return "";
@@ -90,6 +167,7 @@ export default class Home extends React.Component {
 
   obterDiaDoMes = () => String(new Date().getDate()).padStart(2, "0");
 
+ 
   carregar = async () => {
     try {
       const s = await getSession();
@@ -97,24 +175,28 @@ export default class Home extends React.Component {
       const userNome = this.props.route?.params?.userNome || s?.nome || "usuário";
 
       const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
-      const KEY_CURRENT_BOOK  = keyUser(uid, "current_book");   // legado único
-      const KEY_READ_BOOKS    = keyUser(uid, "read_books");
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book"); // legado
+      const KEY_READ_BOOKS = keyUser(uid, "read_books");
       const KEY_DROPPED_BOOKS = keyUser(uid, "dropped_books");
-      const KEY_FAVORITOS     = keyUser(uid, "favoritos");
+      const KEY_FAVORITOS = keyUser(uid, "favoritos");
 
       const [rawAtuais, rawFavoritos, rawLidos, rawDrop, rawDesejos] = await Promise.all([
         AsyncStorage.getItem(KEY_CURRENT_BOOKS),
         AsyncStorage.getItem(KEY_FAVORITOS),
         AsyncStorage.getItem(KEY_READ_BOOKS),
         AsyncStorage.getItem(KEY_DROPPED_BOOKS),
-        AsyncStorage.getItem(KEY_LISTA),
+        AsyncStorage.getItem(KEY_LISTA(uid)),
       ]);
 
-  
       let atuais = [];
-      try { atuais = JSON.parse(rawAtuais || "[]"); if (!Array.isArray(atuais)) atuais = []; } catch { atuais = []; }
+      try {
+        atuais = JSON.parse(rawAtuais || "[]");
+        if (!Array.isArray(atuais)) atuais = [];
+      } catch {
+        atuais = [];
+      }
 
-  
+      
       const legadoRaw = await AsyncStorage.getItem(KEY_CURRENT_BOOK);
       if (legadoRaw) {
         try {
@@ -123,63 +205,104 @@ export default class Home extends React.Component {
             atuais = [legado, ...atuais.filter((b) => b && b.id !== legado.id)];
           }
         } catch {}
-        try { await AsyncStorage.removeItem(KEY_CURRENT_BOOK); } catch {}
+        try {
+          await AsyncStorage.removeItem(KEY_CURRENT_BOOK);
+        } catch {}
       }
 
-   
-      let favoritos = [];  try { favoritos = JSON.parse(rawFavoritos || "[]"); if (!Array.isArray(favoritos)) favoritos = []; } catch { favoritos = []; }
-      let lidos = [];      try { lidos      = JSON.parse(rawLidos || "[]");     if (!Array.isArray(lidos))      lidos = [];      } catch { lidos = []; }
-      let desistidos = []; try { desistidos = JSON.parse(rawDrop || "[]");      if (!Array.isArray(desistidos)) desistidos = []; } catch { desistidos = []; }
+      let favoritos = [];
+      try {
+        favoritos = JSON.parse(rawFavoritos || "[]");
+        if (!Array.isArray(favoritos)) favoritos = [];
+      } catch {
+        favoritos = [];
+      }
 
-     
+      let lidos = [];
+      try {
+        lidos = JSON.parse(rawLidos || "[]");
+        if (!Array.isArray(lidos)) lidos = [];
+      } catch {
+        lidos = [];
+      }
+
+      let desistidos = [];
+      try {
+        desistidos = JSON.parse(rawDrop || "[]");
+        if (!Array.isArray(desistidos)) desistidos = [];
+      } catch {
+        desistidos = [];
+      }
+
       const livros = atuais.filter(Boolean).map((b) => ({
         id: b.id,
         titulo: b.titulo || "Sem título",
         autor: b.autor || "",
         genero: b.genero || "",
-        capa: b.capa || null,
-        capaUri: b.capaUri || null,
-        capaLocal: b.capaLocal || null,
+        capa: b.capa ?? null,
+        capaUri: b.capaUri ?? null,
+        capaLocal: b.capaLocal ?? null,
         inicioEm: b.inicioEm || null,
         progresso: typeof b.progresso === "number" ? b.progresso : 0,
       }));
 
+     
       let desejosBrutos = [];
-      try { desejosBrutos = JSON.parse(rawDesejos || "[]"); if (!Array.isArray(desejosBrutos)) desejosBrutos = []; } catch { desejosBrutos = []; }
+      try {
+        desejosBrutos = JSON.parse(rawDesejos || "[]");
+        if (!Array.isArray(desejosBrutos)) desejosBrutos = [];
+      } catch {
+        desejosBrutos = [];
+      }
 
+    
       const fontes = [...atuais, ...favoritos, ...lidos, ...desistidos].filter(Boolean);
       const byId = new Map();
       for (const it of fontes) if (it?.id) byId.set(it.id, it);
 
+      let migrado = false;
       const listaDesejos = desejosBrutos
         .map((d) => {
+          // já é objeto completo -> normaliza
           if (d && typeof d === "object" && d.id) {
             return {
               id: d.id,
-              titulo: d.titulo || "Sem título",
-              autor: d.autor || "",
-              capa: d.capa || null,
-              capaUri: d.capaUri || null,
-              capaLocal: d.capaLocal || null,
+              titulo: d.titulo || CATALOGO_MINIMO[d.id]?.titulo || "Sem título",
+              autor: d.autor ?? CATALOGO_MINIMO[d.id]?.autor ?? "",
+              capa: d.capa ?? CATALOGO_MINIMO[d.id]?.capa ?? null,
+              capaUri: d.capaUri ?? null,
+              capaLocal: d.capaLocal ?? null,
             };
           }
+
+       
           if (typeof d === "string") {
-            const hit = byId.get(d);
+            migrado = true;
+            const hit = byId.get(d) || CATALOGO_MINIMO[d] || null;
             if (hit) {
               return {
                 id: hit.id,
                 titulo: hit.titulo || "Sem título",
                 autor: hit.autor || "",
-                capa: hit.capa || null,
-                capaUri: hit.capaUri || null,
-                capaLocal: hit.capaLocal || null,
+                capa: hit.capa ?? null,
+                capaUri: hit.capaUri ?? null,
+                capaLocal: hit.capaLocal ?? null,
               };
             }
-            return { id: d, titulo: "(sem dados)", autor: "", capa: null };
+          
+            return { id: d, titulo: "Sem título", autor: "", capa: null };
           }
+
           return null;
         })
         .filter(Boolean);
+
+     
+      if (migrado) {
+        try {
+          await AsyncStorage.setItem(KEY_LISTA(uid), JSON.stringify(listaDesejos));
+        } catch {}
+      }
 
       this.setState({ livros, listaDesejos, carregando: false, userNome, uid });
     } catch {
@@ -192,14 +315,24 @@ export default class Home extends React.Component {
       const { uid } = this.state;
       const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
       const KEY_READ_BOOKS = keyUser(uid, "read_books");
-      const KEY_CURRENT_BOOK = keyUser(uid, "current_book"); // legado
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book");
 
       const rawCurrent = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
       const rawRead = (await AsyncStorage.getItem(KEY_READ_BOOKS)) || "[]";
       let atuais = [];
       let lidos = [];
-      try { atuais = JSON.parse(rawCurrent); if (!Array.isArray(atuais)) atuais = []; } catch { atuais = []; }
-      try { lidos  = JSON.parse(rawRead);   if (!Array.isArray(lidos))  lidos  = []; } catch { lidos = []; }
+      try {
+        atuais = JSON.parse(rawCurrent);
+        if (!Array.isArray(atuais)) atuais = [];
+      } catch {
+        atuais = [];
+      }
+      try {
+        lidos = JSON.parse(rawRead);
+        if (!Array.isArray(lidos)) lidos = [];
+      } catch {
+        lidos = [];
+      }
 
       const novosAtuais = atuais.filter((b) => b && b.id !== livro.id);
       const finalizado = { ...livro, finalizadoEm: new Date().toISOString() };
@@ -207,12 +340,16 @@ export default class Home extends React.Component {
 
       await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(novosAtuais));
       await AsyncStorage.setItem(KEY_READ_BOOKS, JSON.stringify(novosLidos));
-      try { await AsyncStorage.removeItem(KEY_CURRENT_BOOK); } catch {}
+      try {
+        await AsyncStorage.removeItem(KEY_CURRENT_BOOK);
+      } catch {}
 
       this.setState(
         (st) => ({ livros: st.livros.filter((b) => b.id !== livro.id) }),
         () => {
-          try { this.props.navigation?.navigate?.("AvaliarLivro", { livro: finalizado }); } catch {}
+          try {
+            this.props.navigation?.navigate?.("AvaliarLivro", { livro: finalizado });
+          } catch {}
         }
       );
     } catch {
@@ -225,15 +362,25 @@ export default class Home extends React.Component {
       const { uid } = this.state;
       const KEY_CURRENT_BOOKS = keyUser(uid, "current_books");
       const KEY_DROPPED_BOOKS = keyUser(uid, "dropped_books");
-      const KEY_CURRENT_BOOK = keyUser(uid, "current_book"); // legado
+      const KEY_CURRENT_BOOK = keyUser(uid, "current_book");
 
       const rawCurrent = (await AsyncStorage.getItem(KEY_CURRENT_BOOKS)) || "[]";
       const rawDropped = (await AsyncStorage.getItem(KEY_DROPPED_BOOKS)) || "[]";
 
       let atuais = [];
       let desistidos = [];
-      try { atuais = JSON.parse(rawCurrent);  if (!Array.isArray(atuais))   atuais = []; } catch { atuais = []; }
-      try { desistidos = JSON.parse(rawDropped); if (!Array.isArray(desistidos)) desistidos = []; } catch { desistidos = []; }
+      try {
+        atuais = JSON.parse(rawCurrent);
+        if (!Array.isArray(atuais)) atuais = [];
+      } catch {
+        atuais = [];
+      }
+      try {
+        desistidos = JSON.parse(rawDropped);
+        if (!Array.isArray(desistidos)) desistidos = [];
+      } catch {
+        desistidos = [];
+      }
 
       const novosAtuais = atuais.filter((b) => b && b.id !== livro.id);
       const registroDesistido = { ...livro, desistidoEm: new Date().toISOString() };
@@ -241,7 +388,9 @@ export default class Home extends React.Component {
 
       await AsyncStorage.setItem(KEY_CURRENT_BOOKS, JSON.stringify(novosAtuais));
       await AsyncStorage.setItem(KEY_DROPPED_BOOKS, JSON.stringify(novosDesistidos));
-      try { await AsyncStorage.removeItem(KEY_CURRENT_BOOK); } catch {}
+      try {
+        await AsyncStorage.removeItem(KEY_CURRENT_BOOK);
+      } catch {}
 
       this.setState((st) => ({ livros: st.livros.filter((b) => b.id !== livro.id) }));
       Alert.alert("Pronto", "Você desistiu desta leitura. O livro foi removido da sua lista de lendo.");
@@ -256,8 +405,11 @@ export default class Home extends React.Component {
 
   aoPressionarAdicionar = () => {
     if (this.props.navigation?.navigate) {
-      try { this.props.navigation.navigate("AdicionarLivro"); }
-      catch { Alert.alert("Adicionar", "Tela 'AdicionarLivro' não encontrada."); }
+      try {
+        this.props.navigation.navigate("AdicionarLivro");
+      } catch {
+        Alert.alert("Adicionar", "Tela 'AdicionarLivro' não encontrada.");
+      }
     } else {
       Alert.alert("Adicionar", "Navegação indisponível no momento.");
     }
@@ -278,8 +430,11 @@ export default class Home extends React.Component {
 
   irParaLancamentos = () => {
     if (this.props.navigation?.navigate) {
-      try { this.props.navigation.navigate("Lancamentos"); }
-      catch { Alert.alert("Lançamentos", "Tela de lançamentos ainda não foi implementada."); }
+      try {
+        this.props.navigation.navigate("Lancamentos");
+      } catch {
+        Alert.alert("Lançamentos", "Tela de lançamentos ainda não foi implementada.");
+      }
     } else {
       Alert.alert("Lançamentos", "Tela de lançamentos ainda não foi implementada.");
     }
@@ -383,23 +538,29 @@ export default class Home extends React.Component {
   CartaoListaDesejos = () => {
     const { listaDesejos } = this.state;
     const vazia = !listaDesejos || listaDesejos.length === 0;
+
     return (
       <View style={[estilos.cartao, estilos.cartaoListaDesejos]}>
         <View style={estilos.listaDesejosTopo}>
           <Text style={estilos.listaDesejosTitulo}>Lista de desejos</Text>
-          <Pressable
-            onPress={() => Alert.alert("Lista de desejos", "Para adicionar/remover, use o botão na tela de detalhes do livro.")}
-            style={estilos.botaoFantasma}
-          >
+
+          <Pressable onPress={this.aoPressionarAdicionar} style={estilos.botaoFantasma}>
             <MaterialCommunityIcons name="heart-plus" size={18} color={CORES.azul500} />
-            <Text style={estilos.textoBotaoFantasma}>Gerenciar</Text>
+            <Text style={estilos.textoBotaoFantasma}>Desejar</Text>
           </Pressable>
         </View>
 
         {vazia ? (
           <>
-            <Text style={estilos.listaDesejosMensagem}>Sua lista de desejos está vazia no momento.</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.listaDesejosLinha}>
+            <Text style={estilos.listaDesejosMensagem}>
+              Sua lista de desejos está vazia no momento.
+            </Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={estilos.listaDesejosLinha}
+            >
               <View style={[estilos.itemDesejo, estilos.itemDesejoPlaceholder]}>
                 <View style={estilos.capaDesejoPlaceholder}>
                   <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
@@ -418,26 +579,42 @@ export default class Home extends React.Component {
             </ScrollView>
           </>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.listaDesejosLinha}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={estilos.listaDesejosLinha}
+          >
             {listaDesejos.map((it) => {
               const fonteCapa = this.resolverFonteCapa(it?.capaLocal || it?.capa || it?.capaUri);
               return (
                 <Pressable
                   key={it.id}
                   onPress={() => {
-                    try { this.props.navigation?.navigate?.("DetalheLivro", { livro: it }); } catch {}
+                    try {
+                     
+                      this.props.navigation?.navigate?.("DetalheLivro", { livro: it });
+                    } catch {}
                   }}
                   style={estilos.itemDesejo}
                 >
                   <View style={estilos.capaDesejoPlaceholder}>
                     {fonteCapa ? (
-                      <Image source={fonteCapa} style={{ width: "100%", height: "100%", borderRadius: 10 }} />
+                      <Image
+                        source={fonteCapa}
+                        style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                      />
                     ) : (
                       <MaterialCommunityIcons name="book-outline" size={30} color={CORES.azul300} />
                     )}
                   </View>
-                  <Text numberOfLines={1} style={estilos.tituloDesejo}>{it.titulo || "(sem dados)"}</Text>
-                  {!!it.autor && <Text numberOfLines={1} style={estilos.autorDesejo}>{it.autor}</Text>}
+                  <Text numberOfLines={1} style={estilos.tituloDesejo}>
+                    {it.titulo || "Sem título"}
+                  </Text>
+                  {!!it.autor && (
+                    <Text numberOfLines={1} style={estilos.autorDesejo}>
+                      {it.autor}
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
@@ -585,6 +762,7 @@ export default class Home extends React.Component {
     );
   }
 }
+
 const estilos = StyleSheet.create({
   conteudo: {
     paddingHorizontal: 18,
@@ -999,7 +1177,6 @@ const estilos = StyleSheet.create({
     fontWeight: "800",
   },
 
-  
   cartaoNovidadesTexto: {
     marginTop: 16,
     paddingTop: 14,
@@ -1153,4 +1330,3 @@ const estilos = StyleSheet.create({
     fontSize: 16,
   },
 });
-

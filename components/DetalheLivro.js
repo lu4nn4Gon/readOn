@@ -1,34 +1,3 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  FlatList,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-const CORES = {
-  gradientStart: "#d6fcf9ff",
-  gradientEnd: "#6ef0eaff",
-  azul500: "#038b89ff",
-  azul300: "#b3b3b3ff",
-  texto: "#2C3E50",
-  textoSuave: "#58627A",
-  branco: "#ffffff",
-  borda: "#E6E3DF",
-  cinza: "#302f2fff",
-  sombra: "#000000",
-  quadradoFundo: "#14c9c6ff",
-};
-
 const SINOPSES_LONGAS = {
   "o-amanhecer-na-colheita":
     "Em meio a tradições antigas de uma comunidade isolada, uma jovem descobre segredos que há muito sustentam o poder local. Conforme o ritual da colheita se aproxima, alianças são testadas e a linha entre dever e liberdade se desfaz. O passado de sua família volta à tona em documentos esquecidos, revelando sacrifícios e pactos que moldaram o destino de todos. Para romper o ciclo, ela precisa escolher entre proteger quem ama ou expor a verdade, assumindo o preço dessa escolha. Ao nascer do sol, nada mais será como antes.",
@@ -56,11 +25,42 @@ const SINOPSES_LONGAS = {
     "Guiada por regras não escritas dos filmes de terror, uma protagonista tenta virar a mesa quando estranhos eventos começam a acontecer. Evitar porões, não se separar do grupo, desconfiar do timing perfeito — nada parece suficiente quando o medo tem humor ácido. Enquanto a contagem de sustos cresce, a sátira revela porque certos clichês persistem. Sobreviver exige rir do absurdo e, ao mesmo tempo, levar o perigo a sério.",
 };
 
-const KEY_LISTA = "@readon:lista_desejos";
-const KEY_AVALIACOES = (id) => `@readon:avaliacoes:${id}`;
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  FlatList,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const CORES = {
+  bg1: "#d6fcf9ff",
+  bg2: "#6ef0eaff",
+  branco: "#ffffff",
+  texto: "#2C3E50",
+  textoSuave: "#58627A",
+  prim: "#038b89ff",
+  borda: "#E6E3DF",
+  sombra: "#000000",
+  cinza: "#302f2fff",
+};
+
+const LARGURA_MAX = 560;
 
 const SESSION_KEY = "@readon:session";
 const keyUser = (uid, name) => `@readon:${name}:${uid}`;
+const KEY_LISTA = (uid) => keyUser(uid, "lista_desejos");
+const KEY_AVALIACOES = (id) => `@readon:avaliacoes:${id}`;
 
 async function getSessionUid() {
   try {
@@ -114,10 +114,20 @@ function Stars({ value = 0, size = 18 }) {
   );
 }
 
+
+const slug = (s = "") =>
+  String(s)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
 export default class DetalheLivro extends React.Component {
   state = {
-    emLista: false,         
-    emFavoritos: false,     
+    emLista: false,
+    emFavoritos: false,
     avaliacoes: [],
     notaMedia: 0,
     mostrarAdaptacao: false,
@@ -144,7 +154,9 @@ export default class DetalheLivro extends React.Component {
     const livro = this.props.route?.params?.livro;
     if (!livro?.id) return;
 
-    const listaRaw = (await AsyncStorage.getItem(KEY_LISTA)) || "[]";
+    const uid = (await getSessionUid()) || "__anon__";
+
+    const listaRaw = (await AsyncStorage.getItem(KEY_LISTA(uid))) || "[]";
     const lista = this.lerJSON(listaRaw, []);
 
     const avRaw = (await AsyncStorage.getItem(KEY_AVALIACOES(livro.id))) || "[]";
@@ -155,14 +167,17 @@ export default class DetalheLivro extends React.Component {
       return db - da;
     });
 
-    const uid = (await getSessionUid()) || "__anon__";
     const KEY_FAVORITOS = keyUser(uid, "favoritos");
     const favRaw = (await AsyncStorage.getItem(KEY_FAVORITOS)) || "[]";
     const favoritos = this.lerJSON(favRaw, []);
 
+    const estaNaLista = lista.some((x) =>
+      typeof x === "string" ? x === livro.id : x?.id === livro.id
+    );
+
     this.setState(
       {
-        emLista: lista.includes(livro.id),
+        emLista: estaNaLista,
         emFavoritos: favoritos.some((b) => b && b.id === livro.id),
         avaliacoes,
       },
@@ -176,6 +191,18 @@ export default class DetalheLivro extends React.Component {
     }
     return { capaLocal: null, capaUri: capa, capa: capa };
   };
+
+  _snapshotWishlist(livro) {
+    const { capaLocal, capaUri, capa } = this._extrairCapaPayload(livro.capa);
+    return {
+      id: livro.id,
+      titulo: livro.titulo || "Sem título",
+      autor: livro.autor || "",
+      capa: capa || null,
+      capaUri,
+      capaLocal,
+    };
+  }
 
   setLeituraAtual = async () => {
     const livro = this.props.route?.params?.livro;
@@ -228,23 +255,36 @@ export default class DetalheLivro extends React.Component {
     this.props.navigation?.navigate("Home");
   };
 
-  // === handlers dos botões (sem seção "Ações") ===
   toggleListaDesejos = async () => {
     const livro = this.props.route?.params?.livro;
     if (!livro?.id) return;
 
-    const raw = (await AsyncStorage.getItem(KEY_LISTA)) || "[]";
-    let lista = this.lerJSON(raw, []);
-    const existe = lista.includes(livro.id);
+    const uid = (await getSessionUid()) || "__anon__";
+    const K = KEY_LISTA(uid);
 
-    if (existe) {
-      lista = lista.filter((id) => id !== livro.id);
+    const raw = (await AsyncStorage.getItem(K)) || "[]";
+    let lista = this.lerJSON(raw, []);
+
+    const idxPorId = (arr, id) => arr.findIndex((x) => (typeof x === "string" ? x === id : x?.id === id));
+    const pos = idxPorId(lista, livro.id);
+    const jaExiste = pos >= 0;
+
+    if (jaExiste) {
+      lista = lista.filter((x) => (typeof x === "string" ? x !== livro.id : x?.id !== livro.id));
     } else {
-      lista.unshift(livro.id);
+      const snap = this._snapshotWishlist(livro);
+      lista = lista.filter((x) => (typeof x === "string" ? x !== livro.id : x?.id !== livro.id));
+      lista.unshift(snap);
     }
 
-    await AsyncStorage.setItem(KEY_LISTA, JSON.stringify(lista));
-    this.setState({ emLista: !existe });
+    await AsyncStorage.setItem(K, JSON.stringify(lista));
+    this.setState({ emLista: !jaExiste }, () => {
+      if (!jaExiste) {
+        try {
+          this.props.navigation?.navigate?.("Home");
+        } catch {}
+      }
+    });
   };
 
   toggleFavorito = async () => {
@@ -275,7 +315,6 @@ export default class DetalheLivro extends React.Component {
     await AsyncStorage.setItem(KEY_FAVORITOS, JSON.stringify(favoritos));
     this.setState({ emFavoritos: !existe });
   };
-  // ==============================================
 
   recalcularMedia = () => {
     const { avaliacoes } = this.state;
@@ -292,35 +331,12 @@ export default class DetalheLivro extends React.Component {
     this.setState((st) => ({ mostrarAdaptacao: !st.mostrarAdaptacao }));
   };
 
-  renderBotaoAdaptacao = (livro) => {
-    const info = this.getAdaptacaoInfo(livro);
-    if (!info) return null;
-
-    const aberto = this.state.mostrarAdaptacao;
-    return (
-      <>
-        <Pressable onPress={this.toggleAdaptacao} style={estilos.botaoAdaptacaoDark}>
-          <MaterialCommunityIcons
-            name={aberto ? "chevron-up" : "chevron-down"}
-            size={18}
-            color={CORES.branco}
-          />
-          <Text style={estilos.textoBotaoAdaptacaoDark}>
-            🎬 {aberto ? "Ocultar filmes / onde ver" : "Ver filmes / onde ver"}
-          </Text>
-        </Pressable>
-
-        {aberto && this.renderAdaptacaoCard(info)}
-      </>
-    );
-  };
-
   renderAdaptacaoCard = (info) => {
     const locais = Array.isArray(info.ondeVer) ? info.ondeVer : [];
     return (
       <View style={[estilos.caixa, estilos.caixaAdaptacao]}>
         <View style={estilos.adaptTop}>
-          <MaterialCommunityIcons name="movie-open-outline" size={18} color={CORES.azul500} />
+          <MaterialCommunityIcons name="movie-open-outline" size={18} color={CORES.prim} />
           <Text style={estilos.adaptTitulo}>Adaptação</Text>
         </View>
 
@@ -345,6 +361,29 @@ export default class DetalheLivro extends React.Component {
     );
   };
 
+  renderBotaoAdaptacao = (livro) => {
+    const info = this.getAdaptacaoInfo(livro);
+    if (!info) return null;
+    const aberto = this.state.mostrarAdaptacao;
+
+    return (
+      <>
+        <Pressable onPress={this.toggleAdaptacao} style={estilos.botaoAdaptacaoDark}>
+          <MaterialCommunityIcons
+            name={aberto ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={CORES.branco}
+          />
+          <Text style={estilos.textoBotaoAdaptacaoDark}>
+            🎬 {aberto ? "Ocultar filmes / onde ver" : "Ver filmes / onde ver"}
+          </Text>
+        </Pressable>
+
+        {aberto && this.renderAdaptacaoCard(info)}
+      </>
+    );
+  };
+
   renderItemAvaliacao = ({ item }) => (
     <View style={estilos.itemAvaliacao}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -358,57 +397,20 @@ export default class DetalheLivro extends React.Component {
     </View>
   );
 
-  // só os botões (sem caixa/seção)
-  renderBotoesApenas = () => {
-    const { emLista, emFavoritos } = this.state;
-    return (
-      <View style={estilos.wrapBotoesSoltos}>
-        <Pressable
-          onPress={this.toggleListaDesejos}
-          style={[
-            estilos.botaoQuadrado,
-            emLista && { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={emLista ? "heart" : "heart-plus"}
-            size={30}
-            color={emLista ? CORES.branco : CORES.texto}
-          />
-          <Text style={[estilos.textoBotao, emLista && { color: CORES.branco }]}>
-            {emLista ? "Na lista de desejos" : "Lista de desejos"}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={this.toggleFavorito}
-          style={[
-            estilos.botaoQuadrado,
-            emFavoritos && { backgroundColor: CORES.azul500, borderColor: CORES.azul500 },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={emFavoritos ? "star" : "star-plus"}
-            size={30}
-            color={emFavoritos ? CORES.branco : CORES.texto}
-          />
-          <Text style={[estilos.textoBotao, emFavoritos && { color: CORES.branco }]}>
-            {emFavoritos ? "Favorito" : "Favoritar"}
-          </Text>
-        </Pressable>
-      </View>
-    );
-  };
-
   render() {
     const livro = this.props.route?.params?.livro;
     const { notaMedia, avaliacoes } = this.state;
     if (!livro) return null;
 
-    const sinopseCompleta = livro.sinopseLonga || SINOPSES_LONGAS[livro.id] || livro.sinopse || "";
+    const chaveSinopse =
+      (livro.id && String(livro.id)) ||
+      (livro.slug && String(livro.slug)) ||
+      slug(livro.titulo || "");
+    const sinopseCompleta =
+      SINOPSES_LONGAS[chaveSinopse] || livro.sinopseLonga || livro.sinopse || "";
 
     return (
-      <LinearGradient colors={[CORES.gradientStart, CORES.gradientEnd]} style={{ flex: 1 }}>
+      <LinearGradient colors={[CORES.bg1, CORES.bg2]} style={{ flex: 1 }}>
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -419,7 +421,7 @@ export default class DetalheLivro extends React.Component {
                 style={estilos.botaoVoltar}
                 onPress={() => this.props.navigation?.goBack?.()}
               >
-                <MaterialCommunityIcons name="arrow-left" size={20} color={CORES.azul500} />
+                <MaterialCommunityIcons name="arrow-left" size={20} color={CORES.prim} />
                 <Text style={estilos.txtVoltar}>Voltar</Text>
               </Pressable>
 
@@ -440,7 +442,7 @@ export default class DetalheLivro extends React.Component {
                       <MaterialCommunityIcons
                         name="book-open-page-variant"
                         size={48}
-                        color={CORES.azul300}
+                        color={CORES.textoSuave}
                       />
                     </View>
                   )}
@@ -468,8 +470,41 @@ export default class DetalheLivro extends React.Component {
 
               {this.renderBotaoAdaptacao(livro)}
 
-              {/* SOMENTE OS BOTÕES, SEM TÍTULO/CAIXA */}
-              {this.renderBotoesApenas()}
+              <View style={estilos.wrapBotoesSoltos}>
+                <Pressable
+                  onPress={this.toggleListaDesejos}
+                  style={[
+                    estilos.botaoQuadrado,
+                    this.state.emLista && { backgroundColor: CORES.prim, borderColor: CORES.prim },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={this.state.emLista ? "heart" : "heart-plus"}
+                    size={30}
+                    color={this.state.emLista ? CORES.branco : CORES.texto}
+                  />
+                  <Text style={[estilos.textoBotao, this.state.emLista && { color: CORES.branco }]}>
+                    {this.state.emLista ? "Na lista de desejos" : "Lista de desejos"}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={this.toggleFavorito}
+                  style={[
+                    estilos.botaoQuadrado,
+                    this.state.emFavoritos && { backgroundColor: CORES.prim, borderColor: CORES.prim },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={this.state.emFavoritos ? "star" : "star-plus"}
+                    size={30}
+                    color={this.state.emFavoritos ? CORES.branco : CORES.texto}
+                  />
+                  <Text style={[estilos.textoBotao, this.state.emFavoritos && { color: CORES.branco }]}>
+                    {this.state.emFavoritos ? "Favorito" : "Favoritar"}
+                  </Text>
+                </Pressable>
+              </View>
 
               <View style={estilos.caixa}>
                 <Text style={estilos.secaoTitulo}>Avaliações</Text>
@@ -498,8 +533,6 @@ export default class DetalheLivro extends React.Component {
   }
 }
 
-const LARGURA_MAX = 560;
-
 const estilos = StyleSheet.create({
   conteudo: {
     padding: 18,
@@ -519,7 +552,7 @@ const estilos = StyleSheet.create({
     marginBottom: 6,
   },
   txtVoltar: {
-    color: CORES.azul500,
+    color: CORES.prim,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -552,7 +585,6 @@ const estilos = StyleSheet.create({
   autor: { color: CORES.textoSuave, marginTop: 4 },
   notaLinha: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   notaTexto: { color: CORES.textoSuave, fontWeight: "700" },
-
   caixa: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -569,13 +601,7 @@ const estilos = StyleSheet.create({
     elevation: 2,
   },
   secaoTitulo: { color: CORES.texto, fontSize: 16, fontWeight: "800", marginBottom: 8 },
-  sinopse: {
-    color: CORES.textoSuave,
-    fontSize: 15,
-    lineHeight: 23,
-  },
-
-  
+  sinopse: { color: CORES.textoSuave, fontSize: 15, lineHeight: 23 },
   wrapBotoesSoltos: {
     width: "100%",
     maxWidth: LARGURA_MAX,
@@ -586,7 +612,7 @@ const estilos = StyleSheet.create({
   },
   botaoQuadrado: {
     flex: 1,
-    backgroundColor: CORES.quadradoFundo,
+    backgroundColor: "rgba(20,201,198,0.15)",
     borderWidth: 2,
     borderColor: CORES.borda,
     borderRadius: 16,
@@ -599,18 +625,12 @@ const estilos = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
-  textoBotao: {
-    marginTop: 6,
-    fontWeight: "900",
-    color: CORES.texto,
-    textAlign: "center",
-  },
-
+  textoBotao: { marginTop: 6, fontWeight: "900", color: CORES.texto, textAlign: "center" },
   botaoGrandePrim: {
     width: "100%",
     maxWidth: LARGURA_MAX,
     marginTop: 12,
-    backgroundColor: CORES.azul500,
+    backgroundColor: CORES.prim,
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -644,36 +664,17 @@ const estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
   textoBotaoAdaptacaoDark: { color: CORES.branco, fontWeight: "900" },
-  caixaAdaptacao: {
-    borderLeftWidth: 4,
-    borderLeftColor: "rgba(3,139,137,0.35)",
-    marginTop: 10,
-  },
-  adaptTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 6,
-  },
+  caixaAdaptacao: { borderLeftWidth: 4, borderLeftColor: "rgba(3,139,137,0.35)", marginTop: 10 },
+  adaptTop: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 },
   adaptTitulo: { color: CORES.texto, fontWeight: "800" },
   adaptFilme: { color: CORES.texto, fontWeight: "900", fontSize: 16, marginTop: 2 },
   adaptSub: { color: CORES.textoSuave, fontWeight: "800" },
   linhaBullet: { flexDirection: "row", alignItems: "center", gap: 8 },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: CORES.azul500,
-  },
+  bullet: { width: 6, height: 6, borderRadius: 999, backgroundColor: CORES.prim },
   adaptItem: { color: CORES.texto, fontSize: 14 },
-  itemAvaliacao: {
-    borderWidth: 1,
-    borderColor: CORES.borda,
-    borderRadius: 12,
-    padding: 10,
-  },
+  itemAvaliacao: { borderWidth: 1, borderColor: CORES.borda, borderRadius: 12, padding: 10 },
   avAutor: { color: CORES.texto, fontWeight: "800" },
   avTexto: { color: CORES.textoSuave, marginTop: 4 },
-  avQuando: { color: CORES.azul300, marginTop: 6, fontSize: 12 },
+  avQuando: { color: CORES.textoSuave, marginTop: 6, fontSize: 12 },
   vazio: { color: CORES.textoSuave },
 });
