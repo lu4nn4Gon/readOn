@@ -65,9 +65,7 @@ export default class LivrosFavoritos extends React.Component {
 
   _extrairCapaSource = (item) => {
     if (item?.capa) {
-  
       if (typeof item.capa === "string") return { uri: item.capa };
-   
       return item.capa;
     }
     if (item?.capaUri) return { uri: item.capaUri };
@@ -81,7 +79,6 @@ export default class LivrosFavoritos extends React.Component {
     const KEY_FAVORITOS = keyUser(uid, "favoritos");
     const raw = (await AsyncStorage.getItem(KEY_FAVORITOS)) || "[]";
     const favoritos = this.lerJSON(raw, []);
- 
     const norm = favoritos
       .filter(Boolean)
       .map((b) => ({
@@ -111,7 +108,6 @@ export default class LivrosFavoritos extends React.Component {
   };
 
   abrirDetalhe = (item) => {
-   
     const livro = {
       id: item.id,
       titulo: item.titulo,
@@ -175,6 +171,15 @@ export default class LivrosFavoritos extends React.Component {
         <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
           <View style={estilos.container}>
             <View style={estilos.topo}>
+              <Pressable
+                onPress={() => this.props.navigation?.goBack?.()}
+                style={estilos.btnVoltar}
+                android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: false }}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={20} color={CORES.prim} />
+                <Text style={estilos.txtVoltar}>Voltar</Text>
+              </Pressable>
+
               <Text style={estilos.tituloPagina}>Meus Favoritos</Text>
             </View>
 
@@ -203,13 +208,26 @@ const estilos = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
-    paddingTop: 45,
+    paddingTop: 25,
   },
   topo: {
     paddingTop: 24,
     paddingBottom: 8,
     alignItems: "flex-start",
   },
+
+  btnVoltar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  txtVoltar: {
+    color: CORES.prim,
+    fontWeight: "800",
+  },
+
   tituloPagina: {
     fontSize: 22,
     fontWeight: "900",
