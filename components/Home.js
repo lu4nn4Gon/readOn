@@ -263,7 +263,6 @@ export default class Home extends React.Component {
       let migrado = false;
       const listaDesejos = desejosBrutos
         .map((d) => {
-          // já é objeto completo -> normaliza
           if (d && typeof d === "object" && d.id) {
             return {
               id: d.id,
@@ -418,8 +417,9 @@ export default class Home extends React.Component {
   irParaBiblioteca = (filtro) => {
     if (this.props.navigation?.navigate) {
       try {
-        if (filtro === "lidos") this.props.navigation.navigate("LivrosLidos");
-        else this.props.navigation.navigate("Biblioteca", filtro ? { filtro } : undefined);
+        if (filtro === "favoritos") return this.props.navigation.navigate("LivrosFavoritos");
+        if (filtro === "lidos") return this.props.navigation.navigate("LivrosLidos");
+        return this.props.navigation.navigate("Biblioteca", filtro ? { filtro } : undefined);
       } catch {
         Alert.alert("Biblioteca", "Tela de biblioteca ainda não foi implementada.");
       }
@@ -427,6 +427,7 @@ export default class Home extends React.Component {
       Alert.alert("Biblioteca", "Tela de biblioteca ainda não foi implementada.");
     }
   };
+
 
   irParaLancamentos = () => {
     if (this.props.navigation?.navigate) {
