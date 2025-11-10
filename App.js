@@ -8,10 +8,9 @@ import Cadastro from "./components/Cadastro";
 import Home from "./components/Home";
 import AdicionarLivro from "./components/AdicionarLivro";
 import DetalheLivro from "./components/DetalheLivro";
-
-
 import AvaliarLivro from "./components/AvaliarLivro";
 import LivrosLidos from "./components/LivrosLidos";
+import LivrosFavoritos from "./components/LivrosFavoritos";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,16 +22,12 @@ export default function App() {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Cadastro" component={Cadastro} />
         <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen
-          name="AdicionarLivro"
-          component={AdicionarLivro}
-          options={{ headerShown: false }}
-        />
+
+        <Stack.Screen name="AdicionarLivro" component={AdicionarLivro} />
         <Stack.Screen name="DetalheLivro" component={DetalheLivro} />
-
-
         <Stack.Screen name="AvaliarLivro" component={AvaliarLivro} />
         <Stack.Screen name="LivrosLidos" component={LivrosLidos} />
+        <Stack.Screen name="LivrosFavoritos" component={LivrosFavoritos} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
