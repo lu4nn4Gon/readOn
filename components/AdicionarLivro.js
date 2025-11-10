@@ -33,7 +33,8 @@ const LIVROS = [
     titulo: "O Amanhecer na Colheita",
     autor: "Suzanne Collins",
     genero: "Distopia · YA",
-    sinopse: "Velhas tradições, novos segredos e um destino que muda ao nascer do sol.",
+    sinopse:
+      "Velhas tradições, novos segredos e um destino que muda ao nascer do sol.",
     capa: require("../assets/livros/o-amanhecer-na-colheita.jpg"),
   },
   {
@@ -41,7 +42,8 @@ const LIVROS = [
     titulo: "Jogos Vorazes",
     autor: "Suzanne Collins",
     genero: "Distopia · YA",
-    sinopse: "Katniss entra numa luta televisiva pela sobrevivência e pela liberdade.",
+    sinopse:
+      "Katniss entra numa luta televisiva pela sobrevivência e pela liberdade.",
     capa: require("../assets/livros/jogos-vorazes.jpg"),
   },
   {
@@ -49,7 +51,8 @@ const LIVROS = [
     titulo: "Jogos Vorazes: Em Chamas",
     autor: "Suzanne Collins",
     genero: "Distopia · YA",
-    sinopse: "A faísca da rebelião cresce enquanto o perigo se aproxima.",
+    sinopse:
+      "A faísca da rebelião cresce enquanto o perigo se aproxima.",
     capa: require("../assets/livros/jogos-vorazes-em-chamas.jpg"),
   },
   {
@@ -57,7 +60,8 @@ const LIVROS = [
     titulo: "Jogos Vorazes: A Esperança",
     autor: "Suzanne Collins",
     genero: "Distopia · YA",
-    sinopse: "O fim do regime se aproxima e escolhas custam caro.",
+    sinopse:
+      "O fim do regime se aproxima e escolhas custam caro.",
     capa: require("../assets/livros/jogos-vorazes-a-esperanca.jpg"),
   },
   {
@@ -65,7 +69,8 @@ const LIVROS = [
     titulo: "Como nos Filmes",
     autor: "Lynn Painter",
     genero: "Romance contemporâneo",
-    sinopse: "Quando a vida real resolve seguir um roteiro inesquecível.",
+    sinopse:
+      "Quando a vida real resolve seguir um roteiro inesquecível.",
     capa: require("../assets/livros/como-nos-filmes.jpg"),
   },
   {
@@ -73,7 +78,8 @@ const LIVROS = [
     titulo: "Não é como nos Filmes",
     autor: "Lynn Painter",
     genero: "Romance contemporâneo",
-    sinopse: "Nem todo clichê resiste à realidade — e tudo bem.",
+    sinopse:
+      "Nem todo clichê resiste à realidade — e tudo bem.",
     capa: require("../assets/livros/nao-e-como-nos-filmes.jpg"),
   },
   {
@@ -81,7 +87,8 @@ const LIVROS = [
     titulo: "A Empregada",
     autor: "Freida McFadden",
     genero: "Thriller psicológico",
-    sinopse: "Uma casa perfeita esconde segredos que podem ser fatais.",
+    sinopse:
+      "Uma casa perfeita esconde segredos que podem ser fatais.",
     capa: require("../assets/livros/a-empregada.jpg"),
   },
   {
@@ -89,7 +96,8 @@ const LIVROS = [
     titulo: "A Empregada Está de Olho",
     autor: "Freida McFadden",
     genero: "Thriller psicológico",
-    sinopse: "Velhos fantasmas retornam e nada passa despercebido.",
+    sinopse:
+      "Velhos fantasmas retornam e nada passa despercebido.",
     capa: require("../assets/livros/a-empregada-esta-de-olho.jpg"),
   },
   {
@@ -97,7 +105,8 @@ const LIVROS = [
     titulo: "O Segredo da Empregada",
     autor: "Freida McFadden",
     genero: "Thriller psicológico",
-    sinopse: "Uma verdade enterrada ameaça vir à tona.",
+    sinopse:
+      "Uma verdade enterrada ameaça vir à tona.",
     capa: require("../assets/livros/o-segredo-da-empregada.jpg"),
   },
   {
@@ -105,7 +114,8 @@ const LIVROS = [
     titulo: "O Massacre da Mansão Hope",
     autor: "Riley Sager",
     genero: "Suspense · Mistério",
-    sinopse: "Um crime antigo, convidados suspeitos e pistas por toda parte.",
+    sinopse:
+      "Um crime antigo, convidados suspeitos e pistas por toda parte.",
     capa: require("../assets/livros/o-massacre-da-mansao-hope.jpg"),
   },
   {
@@ -113,7 +123,8 @@ const LIVROS = [
     titulo: "Asas Reluzentes",
     autor: "Allison Saft",
     genero: "Fantasia · Romantasy",
-    sinopse: "Entre luz e sombra, uma guerreira encontra seu próprio voo.",
+    sinopse:
+      "Entre luz e sombra, uma guerreira encontra seu próprio voo.",
     capa: require("../assets/livros/asas-reluzentes.jpg"),
   },
   {
@@ -121,7 +132,8 @@ const LIVROS = [
     titulo: "Como sobreviver a um filme de terror",
     autor: "Scarlett Dunmore",
     genero: "Terror · Comédia",
-    sinopse: "As regras não escritas para não ser a próxima vítima.",
+    sinopse:
+      "As regras não escritas para não ser a próxima vítima.",
     capa: require("../assets/livros/como-sobreviver-a-um-filme-de-terror.jpg"),
   },
 ];
@@ -129,16 +141,27 @@ const LIVROS = [
 export default class AdicionarLivro extends React.Component {
   state = { busca: "" };
 
+  toSnapshot = (it) => {
+    let capaFinal = it.capa;
+    if (typeof it.capa === "object" && it.capa?.uri) {
+      capaFinal = { uri: it.capa.uri };
+    }
+    return {
+      id: it.id,
+      titulo: it.titulo || "Sem título",
+      autor: it.autor || "",
+      genero: it.genero || "",
+      sinopse: it.sinopse || "",
+      capa: capaFinal,
+    };
+  };
+
   abrirDetalhe = (item) => {
-    const pode = !!this.props.navigation?.navigate;
-    if (pode) {
-      try {
-        this.props.navigation.navigate("DetalheLivro", { livro: item });
-      } catch {
-        Alert.alert(item.titulo, "Tela de detalhes será feita depois.");
-      }
-    } else {
-      Alert.alert(item.titulo, "Tela de detalhes será feita depois.");
+    try {
+      const payload = this.toSnapshot(item);
+      this.props.navigation?.navigate?.("DetalheLivro", { livro: payload });
+    } catch (e) {
+      Alert.alert("Erro", "Não foi possível abrir os detalhes do livro.");
     }
   };
 
@@ -200,10 +223,10 @@ export default class AdicionarLivro extends React.Component {
             style={{ flex: 1 }}
           >
             <View style={estilos.conteudo}>
-      
               <Pressable
                 style={estilos.botaoVoltar}
-                onPress={() => this.props.navigation.navigate("Home")}
+                onPress={() => this.props.navigation?.goBack?.()}
+                hitSlop={12}
               >
                 <MaterialCommunityIcons
                   name="arrow-left"
@@ -229,6 +252,7 @@ export default class AdicionarLivro extends React.Component {
                   onChangeText={(t) => this.setState({ busca: t })}
                   autoCorrect={false}
                   autoCapitalize="none"
+                  returnKeyType="search"
                 />
                 {this.state.busca.length > 0 && (
                   <Pressable
@@ -246,11 +270,12 @@ export default class AdicionarLivro extends React.Component {
 
               <FlatList
                 data={dados}
-                keyExtractor={(it) => it.id}
+                keyExtractor={(it) => String(it.id)}
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
                 contentContainerStyle={{ paddingBottom: 18 }}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               />
             </View>
           </KeyboardAvoidingView>
@@ -271,10 +296,10 @@ const estilos = StyleSheet.create({
     maxWidth: LARGURA_MAX,
   },
   botaoVoltar: {
-    flexDirection: "row",     
+    flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    alignSelf: "flex-end",    
+    alignSelf: "flex-end",
     marginTop: 35,
   },
   txtVoltar: {
