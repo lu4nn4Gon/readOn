@@ -89,18 +89,7 @@ export default class Login extends React.Component {
         })
       );
 
-      Alert.alert(
-        "Bem-vindo(a)!",
-        `Olá, ${user.nome}!`,
-        [
-          {
-            text: "OK",
-            onPress: () =>
-              this.props.navigation?.replace("Home", { userNome: user.nome }),
-          },
-        ],
-        { cancelable: false }
-      );
+      this.props.navigation?.replace("Home", { userNome: user.nome });
     } catch {
       this.setState({ carregando: false });
       Alert.alert("Erro", "Não foi possível realizar o login.");
