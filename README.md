@@ -60,7 +60,7 @@ Coloque o título na sua lista de desejos e pronto: ele fica guardadinho ali, te
 ---
 
 ### 🎬 Verificar adaptações  
-A função mais exclusiva do ReadOn — e a minha preferida.  
+A função mais exclusiva do ReadOn e a minha preferida.  
 Descubra se o livro tem:
 
 - filme  
