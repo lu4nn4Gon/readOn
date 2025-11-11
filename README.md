@@ -1,3 +1,5 @@
+Luanna Pinto Gonçalves - RA: 22.124.044-3
+
 # 📚 ReadOn – Seu Companheiro de Leitura
 
 O **ReadOn** nasceu de um amor genuíno pelos livros. Desde sempre, a leitura foi o meu porto seguro — um lugar onde posso viver mil vidas, sentir emoções que não são minhas e viajar para mundos que só existem entre páginas. E foi exatamente dessa magia que surgiu a vontade de criar algo especial.
@@ -174,10 +176,6 @@ Perfeito para quem ama descobrir novas histórias.
 - Componentes customizados com estilos próprios  
 
 ---
-
-## Autor
-
-Luanna Pinto Gonçalves - RA: 22.124.044-3
 
 
 ## ⚙️ Como Rodar o Projeto
