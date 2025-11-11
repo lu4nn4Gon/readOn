@@ -111,48 +111,57 @@ Perfeito para quem ama descobrir novas histórias.
 
 ## 🖼️ Telas do Aplicativo
 
-Substitua cada espaço abaixo por suas imagens (arraste no GitHub):
+### 📌 Login
+<img src="https://github.com/user-attachments/assets/7aa7e70c-59d6-48cb-9621-7b5952502921" width="300"/>
 
-### 📌 Login  
-![login-readon](https://github.com/user-attachments/assets/7aa7e70c-59d6-48cb-9621-7b5952502921)
+---
 
+### 📌 Tela Home
+<p align="left">
+  <img src="https://github.com/user-attachments/assets/4e5d9ff7-8863-4846-a22c-22c36d26d158" width="300"/>
+  <img src="https://github.com/user-attachments/assets/1ba52f8a-20f7-4438-9a00-6eb5901f7f07" width="300"/>
+</p>
 
-### 📌 Tela Home  
-![hom01-readon](https://github.com/user-attachments/assets/4e5d9ff7-8863-4846-a22c-22c36d26d158)
-![home02-readon](https://github.com/user-attachments/assets/1ba52f8a-20f7-4438-9a00-6eb5901f7f07)
-
+---
 
 ### 📌 Buscar Livro
-![busca-readon](https://github.com/user-attachments/assets/de96454e-c31f-4df4-9659-64ac1a5a8de1)
+<img src="https://github.com/user-attachments/assets/de96454e-c31f-4df4-9659-64ac1a5a8de1" width="300"/>
 
+---
 
-### 📌 Detalhe do Livro  
-![livro-readon](https://github.com/user-attachments/assets/b82edf99-0d11-4f06-b318-42357c5ca148)
-![livro02-readon](https://github.com/user-attachments/assets/8b14c41e-8726-4407-847d-3ded90af65ab)
+### 📌 Detalhe do Livro
+<p align="left">
+  <img src="https://github.com/user-attachments/assets/b82edf99-0d11-4f06-b318-42357c5ca148" width="300"/>
+  <img src="https://github.com/user-attachments/assets/8b14c41e-8726-4407-847d-3ded90af65ab" width="300"/>
+</p>
 
+#### 🎬 Ver Adaptação
+<img src="https://github.com/user-attachments/assets/17d687e0-6545-4bdc-bdc8-5b613fa10ec1" width="300"/>
 
-#### Ver Adaptação para as telas
-![btn-filme-readon](https://github.com/user-attachments/assets/17d687e0-6545-4bdc-bdc8-5b613fa10ec1)
+---
 
+### 📌 Livro em Leitura
+<img src="https://github.com/user-attachments/assets/643118a5-fc9d-483d-8758-dcb6721fba2b" width="300"/>
 
-### 📌 Livro em Leitura  
-![livros-status-lendo](https://github.com/user-attachments/assets/643118a5-fc9d-483d-8758-dcb6721fba2b)
+---
 
+### 📌 Avaliação
+<img src="https://github.com/user-attachments/assets/14a10c84-94a4-40eb-8cf6-3981a074765d" width="300"/>
 
-### 📌 Avaliação  
-![avaliacao-livro](https://github.com/user-attachments/assets/14a10c84-94a4-40eb-8cf6-3981a074765d)
+---
 
+### 📌 Lista de Desejos
+<img src="https://github.com/user-attachments/assets/20256a94-aa2d-471d-9f7c-61cd36afc125" width="300"/>
 
-### 📌 Lista de Desejos  
-![livros-com-botao-lista-desejos-marcada](https://github.com/user-attachments/assets/20256a94-aa2d-471d-9f7c-61cd36afc125)
+---
 
+### 📌 Favoritos
+<img src="https://github.com/user-attachments/assets/4d05b227-dd0b-4afb-a47e-ff5e6bf4fd85" width="300"/>
 
-### 📌 Favoritos  
-![favoritos](https://github.com/user-attachments/assets/4d05b227-dd0b-4afb-a47e-ff5e6bf4fd85)
+---
 
-
-### 📌 Lidos  
-![lidos](https://github.com/user-attachments/assets/e79a6e74-f0f2-4d40-87e7-80dacd2a0263)
+### 📌 Lidos
+<img src="https://github.com/user-attachments/assets/e79a6e74-f0f2-4d40-87e7-80dacd2a0263" width="300"/>
 
 ---
 
