@@ -114,28 +114,45 @@ Perfeito para quem ama descobrir novas histórias.
 Substitua cada espaço abaixo por suas imagens (arraste no GitHub):
 
 ### 📌 Login  
-**➡️ INSERIR IMAGEM LOGIN AQUI**
+![login-readon](https://github.com/user-attachments/assets/7aa7e70c-59d6-48cb-9621-7b5952502921)
+
 
 ### 📌 Tela Home  
-**➡️ INSERIR IMAGEM HOME AQUI**
+![hom01-readon](https://github.com/user-attachments/assets/4e5d9ff7-8863-4846-a22c-22c36d26d158)
+![home02-readon](https://github.com/user-attachments/assets/1ba52f8a-20f7-4438-9a00-6eb5901f7f07)
 
-### 📌 Livro em Leitura  
-**➡️ INSERIR IMAGEM LIVRO EM LEITURA AQUI**
+
+### 📌 Buscar Livro
+![busca-readon](https://github.com/user-attachments/assets/de96454e-c31f-4df4-9659-64ac1a5a8de1)
+
 
 ### 📌 Detalhe do Livro  
-**➡️ INSERIR IMAGEM DETALHE DO LIVRO AQUI**
+![livro-readon](https://github.com/user-attachments/assets/b82edf99-0d11-4f06-b318-42357c5ca148)
+![livro02-readon](https://github.com/user-attachments/assets/8b14c41e-8726-4407-847d-3ded90af65ab)
+
+
+#### Ver Adaptação para as telas
+![btn-filme-readon](https://github.com/user-attachments/assets/17d687e0-6545-4bdc-bdc8-5b613fa10ec1)
+
+
+### 📌 Livro em Leitura  
+![livros-status-lendo](https://github.com/user-attachments/assets/643118a5-fc9d-483d-8758-dcb6721fba2b)
+
 
 ### 📌 Avaliação  
-**➡️ INSERIR IMAGEM AVALIAÇÃO AQUI**
+![avaliacao-livro](https://github.com/user-attachments/assets/14a10c84-94a4-40eb-8cf6-3981a074765d)
+
 
 ### 📌 Lista de Desejos  
-**➡️ INSERIR IMAGEM LISTA DE DESEJOS AQUI**
+![livros-com-botao-lista-desejos-marcada](https://github.com/user-attachments/assets/20256a94-aa2d-471d-9f7c-61cd36afc125)
+
 
 ### 📌 Favoritos  
-**➡️ INSERIR IMAGEM FAVORITOS AQUI**
+![favoritos](https://github.com/user-attachments/assets/4d05b227-dd0b-4afb-a47e-ff5e6bf4fd85)
+
 
 ### 📌 Lidos  
-**➡️ INSERIR IMAGEM LIDOS AQUI**
+![lidos](https://github.com/user-attachments/assets/e79a6e74-f0f2-4d40-87e7-80dacd2a0263)
 
 ---
 
