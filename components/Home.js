@@ -642,10 +642,8 @@ export default class Home extends React.Component {
   );
 
   SecaoNovidades = () => {
- 
     const pick = (ids) => ids.map((id) => CATALOGO_MINIMO[id]).filter(Boolean);
 
-   
     const LANCAMENTOS = pick([
       "o-amanhecer-na-colheita",
       "jogos-vorazes",
@@ -658,6 +656,12 @@ export default class Home extends React.Component {
       "o-massacre-da-mansao-hope",
       "asas-reluzentes",
     ]);
+
+    const irParaDetalhe = (livro) => {
+      try {
+        this.props.navigation?.navigate?.("DetalheLivro", { livro });
+      } catch {}
+    };
 
     return (
       <View style={[estilos.cartao, estilos.cartaoNovidadesTexto]}>
@@ -673,12 +677,19 @@ export default class Home extends React.Component {
 
           <View style={estilos.listaTexto}>
             {LANCAMENTOS.map((it) => (
-              <View key={it.id} style={estilos.linhaLancamento}>
-                <View style={estilos.pontoLista} />
-                <Text style={estilos.itemLancamentoTitulo} numberOfLines={1}>
-                  {it.titulo}
-                </Text>
-              </View>
+              <Pressable
+                key={it.id}
+                onPress={() => irParaDetalhe(it)}
+                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+              >
+                <View style={estilos.linhaLancamento}>
+                  <View style={estilos.pontoLista} />
+                  <Text style={estilos.itemLancamentoTitulo} numberOfLines={1}>
+                    {it.titulo}
+                  </Text>
+                </View>
+              </Pressable>
             ))}
           </View>
         </View>
@@ -689,14 +700,21 @@ export default class Home extends React.Component {
           <Text style={estilos.subtituloBloco}>Em alta</Text>
           <View style={estilos.listaTexto}>
             {EM_ALTA.map((it, idx) => (
-              <View key={it.id} style={estilos.linhaAlta}>
-                <View style={estilos.seloNumero}>
-                  <Text style={estilos.textoSeloNumero}>{idx + 1}</Text>
+              <Pressable
+                key={it.id}
+                onPress={() => irParaDetalhe(it)}
+                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+              >
+                <View style={estilos.linhaAlta}>
+                  <View style={estilos.seloNumero}>
+                    <Text style={estilos.textoSeloNumero}>{idx + 1}</Text>
+                  </View>
+                  <Text style={estilos.itemAltaTitulo} numberOfLines={1}>
+                    {it.titulo}
+                  </Text>
                 </View>
-                <Text style={estilos.itemAltaTitulo} numberOfLines={1}>
-                  {it.titulo}
-                </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         </View>
