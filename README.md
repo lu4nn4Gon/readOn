@@ -1,4 +1,4 @@
-Luanna Pinto Gonçalves - RA: 22.124.044-3
+Luanna Pinto Gonçalves 
 
 # 📚 ReadOn – Seu Companheiro de Leitura
 
